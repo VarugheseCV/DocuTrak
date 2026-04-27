@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "DocuTrak",
+    "slug": "docutrak",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.docutrak.mobile"
+    },
+    "android": {
+      "package": "com.docutrak.mobile",
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "extra": {
+      "schemaVersion": 1,
+      "androidFirst": true,
+      "appleSupport": "deferred"
+    }
+  }
+}
