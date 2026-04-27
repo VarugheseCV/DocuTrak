@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
 
@@ -16,18 +17,40 @@ const getEntityIcon = (typeName) => {
 };
 
 export default function EntitiesScreen({ state, onNavigate }) {
-  const entities = state.entities.filter(e => e.active);
+  const [searchQuery, setSearchQuery] = useState("");
+  const entities = state.entities.filter(e => e.active && e.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const alertDays = Number(state.profile?.alertDays || 30);
+
+  const renderRightActions = (entityId) => {
+    return (
+      <View style={{ flexDirection: 'row' }}>
+        <TouchableOpacity style={styles.actionBtnEdit}>
+          <Ionicons name="pencil" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtnDelete}>
+          <Ionicons name="trash" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => onNavigate("dashboard")} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
           <Text style={styles.title}>Entities</Text>
         </View>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search entities..."
+          placeholderTextColor={colors.textMuted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -62,33 +85,34 @@ export default function EntitiesScreen({ state, onNavigate }) {
             else if (totalDocs === 0) statusDot = colors.textMuted;
 
             return (
-              <TouchableOpacity 
-                key={entity.id} 
-                style={styles.listItem} 
-                activeOpacity={0.7}
-                onPress={() => onNavigate("entityDetail", { id: entity.id })}
-              >
-                <View style={styles.statusIndicator}>
-                  <View style={[styles.statusDot, { backgroundColor: statusDot }]} />
-                </View>
-                
-                <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
-                  <Ionicons name={iconName} size={24} color={colors.primary} />
-                </View>
-                
-                <View style={styles.itemText}>
-                  <Text style={styles.itemName} numberOfLines={1} ellipsizeMode="tail">{entity.name}</Text>
-                  <Text style={styles.itemSub} numberOfLines={1} ellipsizeMode="tail">
-                    {typeName} • {totalDocs} doc{totalDocs !== 1 && 's'}
-                    {(expiring > 0 || expired > 0) ? ` • ` : ''}
-                    {expiring > 0 ? <Text style={{color: colors.warning}}>{expiring} expiring</Text> : null}
-                    {(expiring > 0 && expired > 0) ? ', ' : ''}
-                    {expired > 0 ? <Text style={{color: colors.danger}}>{expired} expired</Text> : null}
-                  </Text>
-                </View>
-                
-                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-              </TouchableOpacity>
+              <Swipeable key={entity.id} renderRightActions={() => renderRightActions(entity.id)}>
+                <TouchableOpacity 
+                  style={styles.listItem} 
+                  activeOpacity={0.7}
+                  onPress={() => onNavigate("entityDetail", { id: entity.id })}
+                >
+                  <View style={styles.statusIndicator}>
+                    <View style={[styles.statusDot, { backgroundColor: statusDot }]} />
+                  </View>
+                  
+                  <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name={iconName} size={24} color={colors.primary} />
+                  </View>
+                  
+                  <View style={styles.itemText}>
+                    <Text style={styles.itemName} numberOfLines={1} ellipsizeMode="tail">{entity.name}</Text>
+                    <Text style={styles.itemSub} numberOfLines={1} ellipsizeMode="tail">
+                      {typeName} • {totalDocs} doc{totalDocs !== 1 && 's'}
+                      {(expiring > 0 || expired > 0) ? ` • ` : ''}
+                      {expiring > 0 ? <Text style={{color: colors.warning}}>{expiring} expiring</Text> : null}
+                      {(expiring > 0 && expired > 0) ? ', ' : ''}
+                      {expired > 0 ? <Text style={{color: colors.danger}}>{expired} expired</Text> : null}
+                    </Text>
+                  </View>
+                  
+                  <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                </TouchableOpacity>
+              </Swipeable>
             );
           })
         )}
@@ -129,6 +153,23 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: '900', color: colors.text },
   content: { padding: 20, paddingBottom: 120 },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceElevated,
+    marginHorizontal: 20,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchIcon: { marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    color: colors.text,
+    fontSize: 16,
+  },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -178,7 +219,7 @@ const styles = StyleSheet.create({
   itemSub: { fontSize: 13, color: colors.textMuted, marginTop: 4, fontWeight: '500' },
   fabWrapper: {
     position: 'absolute',
-    bottom: 95,
+    bottom: 20,
     right: 20,
     shadowColor: colors.primary,
     shadowOpacity: 0.3,
@@ -201,5 +242,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
     marginLeft: 8,
+  },
+  actionBtnEdit: {
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    marginBottom: 12,
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  actionBtnDelete: {
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    marginBottom: 12,
+    borderRadius: 20,
+    marginLeft: 10,
   }
 });

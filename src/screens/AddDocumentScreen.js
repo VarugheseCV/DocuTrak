@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../theme/theme';
 
 function createId(prefix) {
@@ -12,9 +13,19 @@ function createId(prefix) {
 export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
   const [entityId, setEntityId] = useState("");
   const [documentTypeId, setDocumentTypeId] = useState("");
+  const [newDocumentTypeName, setNewDocumentTypeName] = useState("");
+  const [isCreatingType, setIsCreatingType] = useState(false);
   const [expiryDate, setExpiryDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
+
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setExpiryDate(selectedDate.toISOString().split('T')[0]);
+    }
+  };
 
   async function pickImage() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -32,8 +43,29 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
   }
 
   async function save() {
-    if (!entityId || !documentTypeId || !expiryDate.trim()) {
-      Alert.alert("Incomplete", "Please select entity, document type, and expiry date.");
+    let finalDocumentTypeId = documentTypeId;
+    let updatedDocTypes = state.documentTypes;
+
+    if (isCreatingType) {
+      if (!newDocumentTypeName.trim()) {
+        Alert.alert("Incomplete", "Please enter the new document type name.");
+        return;
+      }
+      finalDocumentTypeId = createId("doc-type");
+      updatedDocTypes = [...updatedDocTypes, { id: finalDocumentTypeId, name: newDocumentTypeName.trim(), active: true }];
+    } else if (!finalDocumentTypeId) {
+      Alert.alert("Incomplete", "Please select a document type or create a new one.");
+      return;
+    }
+
+    if (!entityId || !expiryDate.trim()) {
+      Alert.alert("Incomplete", "Please select an entity and an expiry date.");
+      return;
+    }
+
+    const isDuplicate = state.documentRecords.some(d => d.entityId === entityId && d.documentTypeId === finalDocumentTypeId && d.status === "Active");
+    if (isDuplicate) {
+      Alert.alert("Duplicate Entry", "This document type already exists for the selected entity.");
       return;
     }
 
@@ -49,7 +81,7 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
     const record = {
       id: createId("document-record"),
       entityId,
-      documentTypeId,
+      documentTypeId: finalDocumentTypeId,
       expiryDate: expiryDate.trim(),
       description: description.trim(),
       imageIds: imageObj ? [imageObj.id] : [],
@@ -58,9 +90,11 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
 
     onCommit({
       ...state,
+      documentTypes: updatedDocTypes,
       images: imageObj ? [...state.images, imageObj] : state.images,
       documentRecords: [...state.documentRecords, record]
     });
+
     onNavigate("dashboard");
   }
 
@@ -88,26 +122,53 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
           ))}
         </ScrollView>
 
-        <Text style={styles.label}>Document Type</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-          {state.documentTypes.filter(d => d.active).map(d => (
-            <TouchableOpacity 
-              key={d.id} 
-              style={[styles.chip, documentTypeId === d.id && styles.chipActive]}
-              onPress={() => setDocumentTypeId(d.id)}
-            >
-              <Text style={[styles.chipText, documentTypeId === d.id && styles.chipTextActive]}>{d.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={styles.label}>Document Type</Text>
+          <TouchableOpacity onPress={() => setIsCreatingType(!isCreatingType)}>
+            <Text style={{ color: colors.primary, fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>
+              {isCreatingType ? "Select Existing" : "+ Create New"}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.label}>Expiry Date (YYYY-MM-DD)</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="e.g. 2026-05-20" 
-          value={expiryDate}
-          onChangeText={setExpiryDate}
-        />
+        {isCreatingType ? (
+          <TextInput 
+            style={styles.input} 
+            placeholder="e.g. Visa, Warranty..." 
+            placeholderTextColor={colors.textMuted}
+            value={newDocumentTypeName}
+            onChangeText={setNewDocumentTypeName}
+          />
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
+            {state.documentTypes.filter(d => d.active).map(d => (
+              <TouchableOpacity 
+                key={d.id} 
+                style={[styles.chip, documentTypeId === d.id && styles.chipActive]}
+                onPress={() => setDocumentTypeId(d.id)}
+              >
+                <Text style={[styles.chipText, documentTypeId === d.id && styles.chipTextActive]}>{d.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+
+        <Text style={styles.label}>Expiry Date</Text>
+        <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+          <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+          <Text style={[styles.dateText, !expiryDate && { color: colors.textMuted }]}>
+            {expiryDate || "Select Date (YYYY-MM-DD)"}
+          </Text>
+        </TouchableOpacity>
+        
+        {showDatePicker && (
+          <DateTimePicker
+            value={expiryDate ? new Date(expiryDate) : new Date()}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+          />
+        )}
 
         <Text style={styles.label}>Notes (optional)</Text>
         <TextInput 
@@ -161,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.border,
     marginRight: 10,
@@ -171,7 +232,21 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   chipText: { color: colors.text, fontWeight: '500' },
-  chipTextActive: { color: colors.surface, fontWeight: 'bold' },
+  chipTextActive: { color: colors.text, fontWeight: 'bold' },
+  datePickerBtn: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: colors.text,
+    marginLeft: 10,
+  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,

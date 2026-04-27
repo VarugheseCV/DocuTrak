@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as SecureStore from "expo-secure-store";
 import { createInitialState, defaultProfile, SCHEMA_VERSION } from "./seeds";
 
@@ -7,10 +7,13 @@ const PROFILE_KEY = "docutrak-profile";
 
 export async function loadState() {
   try {
-    const info = await FileSystem.getInfoAsync(DATA_FILE);
-    const baseState = info.exists
-      ? JSON.parse(await FileSystem.readAsStringAsync(DATA_FILE))
-      : createInitialState();
+    let baseState;
+    try {
+      const content = await FileSystem.readAsStringAsync(DATA_FILE);
+      baseState = JSON.parse(content);
+    } catch (e) {
+      baseState = createInitialState();
+    }
     const profileJson = await SecureStore.getItemAsync(PROFILE_KEY);
     const profile = profileJson ? JSON.parse(profileJson) : baseState.profile || defaultProfile;
     return migrateState({

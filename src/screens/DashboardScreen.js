@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
 
@@ -42,6 +43,19 @@ export default function DashboardScreen({ state, onNavigate }) {
     bannerIcon = "warning";
     bannerIconTint = colors.accent;
   }
+
+  const renderRightActions = (docId) => {
+    return (
+      <View style={{ flexDirection: 'row' }}>
+        <TouchableOpacity style={styles.actionBtnEdit}>
+          <Ionicons name="pencil" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtnDelete}>
+          <Ionicons name="trash" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -109,19 +123,21 @@ export default function DashboardScreen({ state, onNavigate }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Expiring Soon</Text>
             {expiringSoon.map(item => (
-              <TouchableOpacity key={item.id} onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
-                <View style={[styles.itemIcon, { backgroundColor: colors.warningLight }]}>
-                  <Ionicons name="document-text" size={22} color={colors.accent} />
-                </View>
-                <View style={styles.itemLeft}>
-                  <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
-                  <Text style={styles.itemSub}>{item.entity?.name || "Entity"}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
-                  <Text style={{ fontSize: 12, color: colors.accent, marginTop: 4, fontWeight: '700' }}>{item.daysRemaining} days left</Text>
-                </View>
-              </TouchableOpacity>
+              <Swipeable key={item.id} renderRightActions={() => renderRightActions(item.id)}>
+                <TouchableOpacity onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
+                  <View style={[styles.itemIcon, { backgroundColor: colors.warningLight }]}>
+                    <Ionicons name="document-text" size={22} color={colors.accent} />
+                  </View>
+                  <View style={styles.itemLeft}>
+                    <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
+                    <Text style={styles.itemSub}>{item.entity?.name || "Entity"}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
+                    <Text style={{ fontSize: 12, color: colors.accent, marginTop: 4, fontWeight: '700' }}>{item.daysRemaining} days left</Text>
+                  </View>
+                </TouchableOpacity>
+              </Swipeable>
             ))}
           </View>
         )}
@@ -130,19 +146,21 @@ export default function DashboardScreen({ state, onNavigate }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Expired</Text>
             {expired.map(item => (
-              <TouchableOpacity key={item.id} onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
-                <View style={[styles.itemIcon, { backgroundColor: colors.dangerLight }]}>
-                  <Ionicons name="document-text" size={22} color={colors.danger} />
-                </View>
-                <View style={styles.itemLeft}>
-                  <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
-                  <Text style={styles.itemSub}>{item.entity?.name || "Entity"}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
-                  <Text style={{ fontSize: 12, color: colors.danger, marginTop: 4, fontWeight: '700' }}>Expired</Text>
-                </View>
-              </TouchableOpacity>
+              <Swipeable key={item.id} renderRightActions={() => renderRightActions(item.id)}>
+                <TouchableOpacity onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
+                  <View style={[styles.itemIcon, { backgroundColor: colors.dangerLight }]}>
+                    <Ionicons name="document-text" size={22} color={colors.danger} />
+                  </View>
+                  <View style={styles.itemLeft}>
+                    <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
+                    <Text style={styles.itemSub}>{item.entity?.name || "Entity"}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
+                    <Text style={{ fontSize: 12, color: colors.danger, marginTop: 4, fontWeight: '700' }}>Expired</Text>
+                  </View>
+                </TouchableOpacity>
+              </Swipeable>
             ))}
           </View>
         )}
@@ -335,7 +353,7 @@ const styles = StyleSheet.create({
   },
   fabWrapper: {
     position: 'absolute',
-    bottom: 95,
+    bottom: 20,
     right: 20,
     shadowColor: colors.primary,
     shadowOpacity: 0.3,
@@ -352,5 +370,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
+  },
+  actionBtnEdit: {
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    marginBottom: 12,
+    borderRadius: 20,
+    marginLeft: 10,
+  },
+  actionBtnDelete: {
+    backgroundColor: colors.danger,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    marginBottom: 12,
+    borderRadius: 20,
+    marginLeft: 10,
   }
 });

@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, StatusBar, Text, View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { StatusBar, Text, View, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import { createInitialState } from "./src/data/seeds";
 import { loadState, saveState } from "./src/data/store";
 import { colors } from "./src/theme/theme";
@@ -9,19 +15,19 @@ import { colors } from "./src/theme/theme";
 // Screens
 import DashboardScreen from "./src/screens/DashboardScreen";
 import AddDocumentScreen from "./src/screens/AddDocumentScreen";
+import AddEntityScreen from "./src/screens/AddEntityScreen";
 import EntitiesScreen from "./src/screens/EntitiesScreen";
 import EntityDetailScreen from "./src/screens/EntityDetailScreen";
 import DocumentDetailScreen from "./src/screens/DocumentDetailScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
 export default function App() {
   const [state, setState] = useState(createInitialState());
   const [loading, setLoading] = useState(true);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  
-  // Custom router
-  const [screen, setScreen] = useState("dashboard");
-  const [params, setParams] = useState({});
 
   const unlockApp = async (loadedState) => {
     if (loadedState?.profile?.appLockEnabled) {
@@ -50,11 +56,6 @@ export default function App() {
     await saveState(nextState);
   }
 
-  function navigate(routeName, routeParams = {}) {
-    setScreen(routeName);
-    setParams(routeParams);
-  }
-
   if (loading || !isUnlocked) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
@@ -71,100 +72,79 @@ export default function App() {
     );
   }
 
-  let ScreenComponent;
-  switch (screen) {
-    case "dashboard":
-      ScreenComponent = <DashboardScreen state={state} onNavigate={navigate} />;
-      break;
-    case "addDocument":
-      ScreenComponent = <AddDocumentScreen state={state} onCommit={commit} onNavigate={navigate} />;
-      break;
-    case "entities":
-      ScreenComponent = <EntitiesScreen state={state} onNavigate={navigate} />;
-      break;
-    case "entityDetail":
-      ScreenComponent = <EntityDetailScreen state={state} onNavigate={navigate} params={params} />;
-      break;
-    case "documentDetail":
-      ScreenComponent = <DocumentDetailScreen state={state} onCommit={commit} onNavigate={navigate} params={params} />;
-      break;
-    case "settings":
-      ScreenComponent = <SettingsScreen state={state} onCommit={commit} onNavigate={navigate} />;
-      break;
-    default:
-      ScreenComponent = <DashboardScreen state={state} onNavigate={navigate} />;
-  }
-
-  return (
-    <View style={styles.appContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-      
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.contentWrapper}>
-          {ScreenComponent}
-        </View>
-        
-        {/* Bottom Navigation */}
-        {(screen === "dashboard" || screen === "entities" || screen === "settings") && (
-          <View style={styles.navWrapper}>
-            <View style={styles.bottomNav}>
-              <NavButton title="Home" icon="home" active={screen === "dashboard"} onPress={() => navigate("dashboard")} />
-              <NavButton title="Entities" icon="people" active={screen === "entities"} onPress={() => navigate("entities")} />
-              <NavButton title="Settings" icon="settings" active={screen === "settings"} onPress={() => navigate("settings")} />
-            </View>
-          </View>
-        )}
-      </SafeAreaView>
-    </View>
+  // Wrapper components to inject state/commit into legacy screen API
+  const ScreenWrapper = (Component) => (props) => (
+    <Component 
+      {...props} 
+      state={state} 
+      onCommit={commit} 
+      onNavigate={(r, p) => {
+        if (r === "dashboard" || r === "entities" || r === "settings") {
+          props.navigation.navigate("Tabs", { screen: r, params: p });
+        } else {
+          props.navigation.navigate(r, p);
+        }
+      }} 
+      params={props.route?.params}
+    />
   );
-}
 
-function NavButton({ title, icon, active, onPress }) {
+  const TabNavigator = () => (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: styles.tabBar,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: { fontWeight: 'bold', fontSize: 11, paddingBottom: 5 },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'dashboard') iconName = 'home';
+          else if (route.name === 'entities') iconName = 'people';
+          else if (route.name === 'settings') iconName = 'settings';
+          return <Ionicons name={iconName} size={24} color={color} style={{ marginTop: 5 }} />;
+        },
+      })}
+    >
+      <Tab.Screen name="dashboard" component={ScreenWrapper(DashboardScreen)} options={{ title: "Home" }} />
+      <Tab.Screen name="entities" component={ScreenWrapper(EntitiesScreen)} options={{ title: "Entities" }} />
+      <Tab.Screen name="settings" component={ScreenWrapper(SettingsScreen)} options={{ title: "Settings" }} />
+    </Tab.Navigator>
+  );
+
   return (
-    <TouchableOpacity onPress={onPress} style={styles.navBtn}>
-      <Ionicons 
-        name={active ? icon : `${icon}-outline`} 
-        size={24} 
-        color={active ? colors.primary : colors.textMuted} 
-        style={{ marginBottom: 4 }}
-      />
-      <Text style={{
-        fontSize: 12,
-        fontWeight: active ? 'bold' : '600',
-        color: active ? colors.primary : colors.textMuted
-      }}>
-        {title}
-      </Text>
-    </TouchableOpacity>
+    <GestureHandlerRootView style={styles.appContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+            <Stack.Screen name="Tabs" component={TabNavigator} />
+            <Stack.Screen name="addDocument" component={ScreenWrapper(AddDocumentScreen)} />
+            <Stack.Screen name="addEntity" component={ScreenWrapper(AddEntityScreen)} />
+            <Stack.Screen name="entityDetail" component={ScreenWrapper(EntityDetailScreen)} />
+            <Stack.Screen name="documentDetail" component={ScreenWrapper(DocumentDetailScreen)} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
-    backgroundColor: colors.background, // Pure OLED black
+    backgroundColor: colors.background,
   },
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  contentWrapper: {
-    flex: 1,
-  },
-  navWrapper: {
-    backgroundColor: '#121212', // Solid color instead of BlurView
+  tabBar: {
+    backgroundColor: '#121212',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  bottomNav: {
-    flexDirection: 'row',
     height: Platform.OS === 'ios' ? 85 : 65,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-    alignItems: 'center',
-  },
-  navBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 5,
   }
 });

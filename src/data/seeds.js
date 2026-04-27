@@ -23,26 +23,7 @@ const seedEntityTypes = [
   active: true
 }));
 
-const seedEntities = [
-  ["Varghese", "Individuals"],
-  ["Suma", "Individuals"],
-  ["Richu", "Individuals"],
-  ["Achu", "Individuals"],
-  ["Thumpamon House & Property", "Flat & Buildings"],
-  ["Udayamperoor Land", "Land"],
-  ["Regal Valencia Flat 11A", "Flat & Buildings"],
-  ["Innova - KL 26 C5", "Vehicles"],
-  ["Lexus - ES 350 - KL 7 EE 7", "Vehicles"],
-  ["Accurate Software - Angamaly", "Company"],
-  ["Unplugapps - Irinjalakuda", "Company"],
-  ["Innovations - Muscat", "Company"],
-  ["Innovations - Dubai", "Company"]
-].map(([name, entityTypeName], index) => ({
-  id: `entity-${index + 1}`,
-  name,
-  entityTypeId: seedEntityTypes.find((type) => type.name === entityTypeName)?.id,
-  active: true
-}));
+const seedEntities = [];
 
 const seedDocumentTypes = [
   "Passport",

@@ -23,6 +23,9 @@
       "schemaVersion": 1,
       "androidFirst": true,
       "appleSupport": "deferred"
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
