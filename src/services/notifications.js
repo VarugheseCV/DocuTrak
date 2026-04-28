@@ -33,12 +33,19 @@ export async function scheduleExpiryNotifications(state) {
   await Notifications.cancelAllScheduledNotificationsAsync();
   const report = buildExpiryReport(state);
   const alertDays = Number(state.profile.alertDays || 30);
+  let scheduled = 0;
 
   for (const item of report) {
     const expiryDate = new Date(`${item.expiryDate}T09:00:00`);
     const triggerDate = new Date(expiryDate);
     triggerDate.setDate(triggerDate.getDate() - alertDays);
-    const trigger = triggerDate > new Date() ? triggerDate : null;
+
+    // Skip notifications whose trigger date is already in the past
+    // (null trigger would fire immediately, spamming the user)
+    if (triggerDate <= new Date()) {
+      continue;
+    }
+
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Document expiry reminder",
@@ -47,8 +54,9 @@ export async function scheduleExpiryNotifications(state) {
           documentRecordId: item.id
         }
       },
-      trigger: trigger ? { type: "date", date: trigger, channelId: "expiry-alerts" } : null
+      trigger: { type: "date", date: triggerDate, channelId: "expiry-alerts" }
     });
+    scheduled++;
   }
-  return report.length;
+  return scheduled;
 }

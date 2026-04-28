@@ -3,8 +3,13 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
+import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 
-export default function EntityDetailScreen({ state, onNavigate, params }) {
+export default function EntityDetailScreen() {
+  const { state } = useAppState();
+  const navigate = useAppNavigation();
+  const params = useScreenParams();
+
   const entity = state.entities.find(e => e.id === params.id);
   
   if (!entity) return null;
@@ -21,7 +26,7 @@ export default function EntityDetailScreen({ state, onNavigate, params }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate("entities")}>
+        <TouchableOpacity onPress={() => navigate("entities")}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>{entity.name}</Text>
@@ -44,7 +49,7 @@ export default function EntityDetailScreen({ state, onNavigate, params }) {
               <TouchableOpacity 
                 key={item.id} 
                 style={styles.listItem} 
-                onPress={() => onNavigate("documentDetail", { id: item.id })}
+                onPress={() => navigate("documentDetail", { id: item.id })}
               >
                 <View style={styles.itemLeft}>
                   <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
@@ -57,7 +62,8 @@ export default function EntityDetailScreen({ state, onNavigate, params }) {
         )}
       </ScrollView>
 
-      <TouchableOpacity style={styles.fab} onPress={() => onNavigate("addDocument")}>
+      {/* FAB pre-selects this entity when adding a document */}
+      <TouchableOpacity style={styles.fab} onPress={() => navigate("addDocument", { entityId: entity.id })}>
         <Ionicons name="add" size={30} color={colors.surface} />
       </TouchableOpacity>
     </View>

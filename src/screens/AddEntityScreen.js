@@ -2,19 +2,21 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/theme';
+import { createId } from '../domain/documents';
+import { useAppState, useAppNavigation } from '../context/AppContext';
 
-function createId(prefix) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
+export default function AddEntityScreen() {
+  const { state, commit } = useAppState();
+  const navigate = useAppNavigation();
 
-export default function AddEntityScreen({ state, onCommit, onNavigate }) {
   const [name, setName] = useState("");
   const [entityTypeId, setEntityTypeId] = useState("");
   const [newTypeName, setNewTypeName] = useState("");
   const [isCreatingType, setIsCreatingType] = useState(false);
 
   async function save() {
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
       Alert.alert("Incomplete", "Please enter an entity name.");
       return;
     }
@@ -23,36 +25,54 @@ export default function AddEntityScreen({ state, onCommit, onNavigate }) {
     let updatedTypes = state.entityTypes;
 
     if (isCreatingType) {
-      if (!newTypeName.trim()) {
+      const trimmedTypeName = newTypeName.trim();
+      if (!trimmedTypeName) {
         Alert.alert("Incomplete", "Please enter the new entity type name.");
         return;
       }
+      // Check for duplicate entity type name
+      const existingType = state.entityTypes.find(
+        t => t.active && t.name.toLowerCase() === trimmedTypeName.toLowerCase()
+      );
+      if (existingType) {
+        Alert.alert("Duplicate Type", `An entity type named "${existingType.name}" already exists. Please select it from the list or use a different name.`);
+        return;
+      }
       finalTypeId = createId("entity-type");
-      updatedTypes = [...updatedTypes, { id: finalTypeId, name: newTypeName.trim(), active: true }];
+      updatedTypes = [...updatedTypes, { id: finalTypeId, name: trimmedTypeName, active: true }];
     } else if (!finalTypeId) {
       Alert.alert("Incomplete", "Please select an entity type or create a new one.");
       return;
     }
 
+    // Check for duplicate entity name within the same type
+    const duplicateEntity = state.entities.find(
+      e => e.active && e.name.toLowerCase() === trimmedName.toLowerCase() && e.entityTypeId === finalTypeId
+    );
+    if (duplicateEntity) {
+      Alert.alert("Duplicate Entity", `An entity named "${duplicateEntity.name}" already exists under this type.`);
+      return;
+    }
+
     const entity = {
       id: createId("entity"),
-      name: name.trim(),
+      name: trimmedName,
       entityTypeId: finalTypeId,
       active: true
     };
 
-    onCommit({
+    commit({
       ...state,
       entityTypes: updatedTypes,
       entities: [...state.entities, entity]
     });
-    onNavigate("entities");
+    navigate("entities");
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate("entities")}>
+        <TouchableOpacity onPress={() => navigate("entities")}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Add Entity</Text>

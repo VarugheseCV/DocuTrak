@@ -1,12 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
+import { useAppState, useAppNavigation } from '../context/AppContext';
 
-export default function DashboardScreen({ state, onNavigate }) {
+export default function DashboardScreen() {
+  const { state, commit } = useAppState();
+  const navigate = useAppNavigation();
   const alertDays = Number(state.profile?.alertDays || 30);
   
   const activeRecords = state.documentRecords
@@ -44,13 +47,31 @@ export default function DashboardScreen({ state, onNavigate }) {
     bannerIconTint = colors.accent;
   }
 
+  function handleDeleteRecord(recordId) {
+    Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          commit({
+            ...state,
+            documentRecords: state.documentRecords.map(r =>
+              r.id === recordId ? { ...r, status: "In-Active" } : r
+            )
+          });
+        }
+      }
+    ]);
+  }
+
   const renderRightActions = (docId) => {
     return (
       <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity style={styles.actionBtnEdit}>
+        <TouchableOpacity style={styles.actionBtnEdit} onPress={() => navigate("documentDetail", { id: docId })}>
           <Ionicons name="pencil" size={24} color="#FFF" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtnDelete}>
+        <TouchableOpacity style={styles.actionBtnDelete} onPress={() => handleDeleteRecord(docId)}>
           <Ionicons name="trash" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -64,7 +85,7 @@ export default function DashboardScreen({ state, onNavigate }) {
           <Text style={styles.brand}>DOCUTRAK</Text>
           <Text style={styles.title}>Dashboard</Text>
         </View>
-        <TouchableOpacity onPress={() => onNavigate("settings")} style={styles.headerIconBg}>
+        <TouchableOpacity onPress={() => navigate("settings")} style={styles.headerIconBg}>
           <Ionicons name="settings-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -124,7 +145,7 @@ export default function DashboardScreen({ state, onNavigate }) {
             <Text style={styles.sectionTitle}>Expiring Soon</Text>
             {expiringSoon.map(item => (
               <Swipeable key={item.id} renderRightActions={() => renderRightActions(item.id)}>
-                <TouchableOpacity onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
+                <TouchableOpacity onPress={() => navigate("documentDetail", { id: item.id })} style={styles.listItem}>
                   <View style={[styles.itemIcon, { backgroundColor: colors.warningLight }]}>
                     <Ionicons name="document-text" size={22} color={colors.accent} />
                   </View>
@@ -147,7 +168,7 @@ export default function DashboardScreen({ state, onNavigate }) {
             <Text style={styles.sectionTitle}>Expired</Text>
             {expired.map(item => (
               <Swipeable key={item.id} renderRightActions={() => renderRightActions(item.id)}>
-                <TouchableOpacity onPress={() => onNavigate("documentDetail", { id: item.id })} style={styles.listItem}>
+                <TouchableOpacity onPress={() => navigate("documentDetail", { id: item.id })} style={styles.listItem}>
                   <View style={[styles.itemIcon, { backgroundColor: colors.dangerLight }]}>
                     <Ionicons name="document-text" size={22} color={colors.danger} />
                   </View>
@@ -177,7 +198,7 @@ export default function DashboardScreen({ state, onNavigate }) {
 
       {/* FLOATING ACTION BUTTON */}
       <View style={styles.fabWrapper}>
-        <TouchableOpacity style={styles.fabContainer} activeOpacity={0.8} onPress={() => onNavigate("addDocument")}>
+        <TouchableOpacity style={styles.fabContainer} activeOpacity={0.8} onPress={() => navigate("addDocument")}>
           <LinearGradient colors={[colors.primary, "#0051a8"]} style={styles.fab} start={{x:0, y:0}} end={{x:1, y:1}}>
             <Ionicons name="add" size={24} color={colors.text} />
             <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 15, marginLeft: 8 }}>Add Document</Text>

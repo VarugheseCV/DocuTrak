@@ -1,10 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from "expo-file-system/legacy";
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
+import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 
-export default function DocumentDetailScreen({ state, onCommit, onNavigate, params }) {
+export default function DocumentDetailScreen() {
+  const { state, commit } = useAppState();
+  const navigate = useAppNavigation();
+  const params = useScreenParams();
+
   const record = state.documentRecords.find(r => r.id === params.id);
   if (!record) return null;
 
@@ -28,18 +34,34 @@ export default function DocumentDetailScreen({ state, onCommit, onNavigate, para
 
   const images = (record.imageIds || []).map(id => state.images.find(img => img.id === id)).filter(Boolean);
 
+  async function cleanupImages() {
+    for (const img of images) {
+      try {
+        const info = await FileSystem.getInfoAsync(img.uri);
+        if (info.exists) {
+          await FileSystem.deleteAsync(img.uri, { idempotent: true });
+        }
+      } catch (e) {
+        // Silently ignore cleanup errors
+      }
+    }
+  }
+
   function deleteRecord() {
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       { 
         text: "Delete", 
         style: "destructive", 
-        onPress: () => {
-          onCommit({
+        onPress: async () => {
+          // Clean up associated image files from filesystem
+          await cleanupImages();
+          commit({
             ...state,
-            documentRecords: state.documentRecords.map(r => r.id === record.id ? { ...r, status: "In-Active" } : r)
+            documentRecords: state.documentRecords.map(r => r.id === record.id ? { ...r, status: "In-Active" } : r),
+            images: state.images.filter(img => !(record.imageIds || []).includes(img.id))
           });
-          onNavigate("dashboard");
+          navigate("dashboard");
         } 
       }
     ]);
@@ -48,7 +70,7 @@ export default function DocumentDetailScreen({ state, onCommit, onNavigate, para
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate("dashboard")}>
+        <TouchableOpacity onPress={() => navigate("dashboard")}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>{documentType?.name}</Text>
@@ -69,6 +91,14 @@ export default function DocumentDetailScreen({ state, onCommit, onNavigate, para
             <Ionicons name="ellipse" size={16} color={statusColor} style={{ marginLeft: 2 }} />
             <Text style={[styles.infoText, { color: statusColor, fontWeight: 'bold', marginLeft: 6 }]}>Status: {statusText}</Text>
           </View>
+          {daysRem !== null && (
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={20} color={colors.textMuted} />
+              <Text style={styles.infoText}>
+                {isExpired ? `Expired ${Math.abs(daysRem)} days ago` : `${daysRem} days remaining`}
+              </Text>
+            </View>
+          )}
         </View>
 
         {images.length > 0 && (

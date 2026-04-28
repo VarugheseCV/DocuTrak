@@ -5,13 +5,16 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../theme/theme';
+import { createId } from '../domain/documents';
+import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 
-function createId(prefix) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
+export default function AddDocumentScreen() {
+  const { state, commit } = useAppState();
+  const navigate = useAppNavigation();
+  const params = useScreenParams();
 
-export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
-  const [entityId, setEntityId] = useState("");
+  // Pre-select entity if navigated from entity detail
+  const [entityId, setEntityId] = useState(params.entityId || "");
   const [documentTypeId, setDocumentTypeId] = useState("");
   const [newDocumentTypeName, setNewDocumentTypeName] = useState("");
   const [isCreatingType, setIsCreatingType] = useState(false);
@@ -47,12 +50,21 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
     let updatedDocTypes = state.documentTypes;
 
     if (isCreatingType) {
-      if (!newDocumentTypeName.trim()) {
+      const trimmedName = newDocumentTypeName.trim();
+      if (!trimmedName) {
         Alert.alert("Incomplete", "Please enter the new document type name.");
         return;
       }
+      // Check for duplicate document type name
+      const existingType = state.documentTypes.find(
+        dt => dt.active && dt.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (existingType) {
+        Alert.alert("Duplicate Type", `A document type named "${existingType.name}" already exists. Please select it from the list or use a different name.`);
+        return;
+      }
       finalDocumentTypeId = createId("doc-type");
-      updatedDocTypes = [...updatedDocTypes, { id: finalDocumentTypeId, name: newDocumentTypeName.trim(), active: true }];
+      updatedDocTypes = [...updatedDocTypes, { id: finalDocumentTypeId, name: trimmedName, active: true }];
     } else if (!finalDocumentTypeId) {
       Alert.alert("Incomplete", "Please select a document type or create a new one.");
       return;
@@ -88,20 +100,20 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
       status: "Active"
     };
 
-    onCommit({
+    commit({
       ...state,
       documentTypes: updatedDocTypes,
       images: imageObj ? [...state.images, imageObj] : state.images,
       documentRecords: [...state.documentRecords, record]
     });
 
-    onNavigate("dashboard");
+    navigate("dashboard");
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate("dashboard")}>
+        <TouchableOpacity onPress={() => navigate("dashboard")}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Add Document</Text>
@@ -175,6 +187,7 @@ export default function AddDocumentScreen({ state, onCommit, onNavigate }) {
           style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
           multiline 
           placeholder="Add any additional info..." 
+          placeholderTextColor={colors.textMuted}
           value={description}
           onChangeText={setDescription}
         />
@@ -254,6 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
+    color: colors.text,
   },
   imagePicker: {
     height: 120,

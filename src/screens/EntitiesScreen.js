@@ -1,33 +1,62 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
+import { useAppState, useAppNavigation } from '../context/AppContext';
 
 const getEntityIcon = (typeName) => {
   if (!typeName) return "cube";
   const t = typeName.toLowerCase();
   if (t.includes('individual') || t.includes('person')) return "person";
   if (t.includes('vehicle') || t.includes('car')) return "car";
-  if (t.includes('property') || t.includes('land') || t.includes('flat') || t.includes('building') || t.includes('house')) return "business"; // Using business or home
+  if (t.includes('property') || t.includes('land') || t.includes('flat') || t.includes('building') || t.includes('house')) return "business";
   if (t.includes('company') || t.includes('business')) return "briefcase";
   return "folder";
 };
 
-export default function EntitiesScreen({ state, onNavigate }) {
+export default function EntitiesScreen() {
+  const { state, commit } = useAppState();
+  const navigate = useAppNavigation();
   const [searchQuery, setSearchQuery] = useState("");
   const entities = state.entities.filter(e => e.active && e.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const alertDays = Number(state.profile?.alertDays || 30);
 
+  function handleDeleteEntity(entityId) {
+    const activeDocs = state.documentRecords.filter(d => d.entityId === entityId && d.status === "Active");
+    if (activeDocs.length > 0) {
+      Alert.alert(
+        "Cannot Delete",
+        `This entity has ${activeDocs.length} active document(s). Please remove them first.`
+      );
+      return;
+    }
+    Alert.alert("Delete Entity", "Are you sure you want to remove this entity?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          commit({
+            ...state,
+            entities: state.entities.map(e =>
+              e.id === entityId ? { ...e, active: false } : e
+            )
+          });
+        }
+      }
+    ]);
+  }
+
   const renderRightActions = (entityId) => {
     return (
       <View style={{ flexDirection: 'row' }}>
-        <TouchableOpacity style={styles.actionBtnEdit}>
+        <TouchableOpacity style={styles.actionBtnEdit} onPress={() => navigate("entityDetail", { id: entityId })}>
           <Ionicons name="pencil" size={24} color="#FFF" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtnDelete}>
+        <TouchableOpacity style={styles.actionBtnDelete} onPress={() => handleDeleteEntity(entityId)}>
           <Ionicons name="trash" size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -65,7 +94,6 @@ export default function EntitiesScreen({ state, onNavigate }) {
             const typeName = state.entityTypes.find(t => t.id === entity.entityTypeId)?.name || "Entity";
             const iconName = getEntityIcon(typeName);
             
-            // Compute summary
             const entityDocs = state.documentRecords.filter(d => d.entityId === entity.id && d.status === "Active");
             let expiring = 0;
             let expired = 0;
@@ -89,7 +117,7 @@ export default function EntitiesScreen({ state, onNavigate }) {
                 <TouchableOpacity 
                   style={styles.listItem} 
                   activeOpacity={0.7}
-                  onPress={() => onNavigate("entityDetail", { id: entity.id })}
+                  onPress={() => navigate("entityDetail", { id: entity.id })}
                 >
                   <View style={styles.statusIndicator}>
                     <View style={[styles.statusDot, { backgroundColor: statusDot }]} />
@@ -120,7 +148,7 @@ export default function EntitiesScreen({ state, onNavigate }) {
 
       {/* FAB with Label */}
       <View style={styles.fabWrapper}>
-        <TouchableOpacity style={styles.fabContainer} activeOpacity={0.8} onPress={() => onNavigate("addEntity")}>
+        <TouchableOpacity style={styles.fabContainer} activeOpacity={0.8} onPress={() => navigate("addEntity")}>
           <LinearGradient colors={[colors.primary, "#0051a8"]} style={styles.fab} start={{x:0, y:0}} end={{x:1, y:1}}>
             <Ionicons name="add" size={24} color={colors.text} />
             <Text style={styles.fabLabel}>Add Entity</Text>
@@ -144,12 +172,6 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 16,
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: colors.surface,
   },
   title: { fontSize: 28, fontWeight: '900', color: colors.text },
   content: { padding: 20, paddingBottom: 120 },
