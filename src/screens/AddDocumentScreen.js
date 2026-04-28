@@ -5,7 +5,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../theme/theme';
-import { createId } from '../domain/documents';
+import { createId, findDuplicateDocumentRecord } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 import ScreenHeader from '../components/ScreenHeader';
@@ -56,16 +56,21 @@ export default function AddDocumentScreen() {
 
     if (!entityId || !expiryDate.trim()) { Alert.alert("Incomplete", "Please select an entity and an expiry date."); return; }
 
-    const isDuplicate = state.documentRecords.some(d => d.entityId === entityId && d.documentTypeId === finalDocumentTypeId && d.status === "Active");
+    const isDuplicate = findDuplicateDocumentRecord(state.documentRecords, {
+      entityId,
+      documentTypeId: finalDocumentTypeId,
+      status: "Active"
+    });
     if (isDuplicate) { Alert.alert("Duplicate Entry", "This document type already exists for the selected entity."); return; }
 
     let imageObj = null;
     if (image) {
       const id = createId("image");
       const ext = image.uri.split(".").pop() || "jpg";
-      const target = `${FileSystem.documentDirectory}${id}.${ext}`;
+      const filename = `${id}.${ext}`;
+      const target = `${FileSystem.documentDirectory}${filename}`;
       await FileSystem.copyAsync({ from: image.uri, to: target });
-      imageObj = { id, uri: target, originalName: image.fileName || `${id}.${ext}` };
+      imageObj = { id, filename, originalName: image.fileName || filename };
     }
 
     const record = {

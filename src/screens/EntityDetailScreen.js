@@ -23,11 +23,15 @@ export default function EntityDetailScreen() {
       documentType: state.documentTypes.find(dt => dt.id === record.documentTypeId),
       daysRemaining: daysUntil(record.expiryDate),
     }))
-    .sort((a, b) => a.daysRemaining - b.daysRemaining);
+    .sort((a, b) => {
+      if (a.daysRemaining === null) return 1;
+      if (b.daysRemaining === null) return -1;
+      return a.daysRemaining - b.daysRemaining;
+    });
 
   const renderItem = useCallback(({ item }) => {
-    const isExpired = item.daysRemaining < 0;
-    const isExpiringSoon = item.daysRemaining >= 0 && item.daysRemaining <= (state.profile?.alertDays || 30);
+    const isExpired = item.daysRemaining !== null && item.daysRemaining < 0;
+    const isExpiringSoon = item.daysRemaining !== null && item.daysRemaining >= 0 && item.daysRemaining <= (state.profile?.alertDays || 30);
 
     let statusColor = colors.success;
     if (isExpired) statusColor = colors.danger;

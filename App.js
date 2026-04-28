@@ -8,6 +8,7 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import { createInitialState } from "./src/data/seeds";
 import { loadState, saveState } from "./src/data/store";
+import { scheduleExpiryNotifications } from "./src/services/notifications";
 import { colors } from "./src/theme/theme";
 import { AppProvider } from "./src/context/AppContext";
 import RootStack from "./src/navigation/RootStack";
@@ -37,6 +38,7 @@ export default function App() {
       stateRef.current = loaded;
       unlockApp(loaded);
       setLoading(false);
+      scheduleExpiryNotifications(loaded);
     });
   }, []);
 
@@ -46,6 +48,7 @@ export default function App() {
     setState(nextState);
     stateRef.current = nextState;
     await saveState(nextState);
+    scheduleExpiryNotifications(nextState);
   }, []);
 
   if (loading || !isUnlocked) {

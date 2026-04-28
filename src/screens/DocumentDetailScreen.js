@@ -20,36 +20,31 @@ export default function DocumentDetailScreen() {
   const documentType = state.documentTypes.find(dt => dt.id === record.documentTypeId);
 
   const daysRem = daysUntil(record.expiryDate);
-  const isExpired = daysRem < 0;
-  const isExpiringSoon = daysRem >= 0 && daysRem <= (state.profile?.alertDays || 30);
+  const isExpired = daysRem !== null && daysRem < 0;
+  const isExpiringSoon = daysRem !== null && daysRem >= 0 && daysRem <= (state.profile?.alertDays || 30);
 
   let statusText = "Active";
   let statusColor = colors.success;
   if (isExpired) { statusText = "Expired"; statusColor = colors.danger; }
   else if (isExpiringSoon) { statusText = "Expiring Soon"; statusColor = colors.warning; }
 
-  const images = (record.imageIds || []).map(id => state.images.find(img => img.id === id)).filter(Boolean);
-
-  async function cleanupImages() {
-    for (const img of images) {
-      try {
-        const info = await FileSystem.getInfoAsync(img.uri);
-        if (info.exists) await FileSystem.deleteAsync(img.uri, { idempotent: true });
-      } catch (_) { /* ignore */ }
-    }
-  }
+  const images = (record.imageIds || [])
+    .map(id => state.images.find(img => img.id === id))
+    .filter(Boolean)
+    .map(img => ({
+      ...img,
+      uri: `${FileSystem.documentDirectory}${img.filename || img.uri.split('/').pop()}`
+    }));
 
   function deleteRecord() {
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive",
-        onPress: async () => {
-          await cleanupImages();
+        onPress: () => {
           commit({
             ...state,
             documentRecords: state.documentRecords.map(r => r.id === record.id ? { ...r, status: "In-Active" } : r),
-            images: state.images.filter(img => !(record.imageIds || []).includes(img.id)),
           });
           navigate(ROUTES.DASHBOARD);
         },

@@ -41,6 +41,15 @@ export async function replaceState(state) {
 }
 
 function migrateState(state) {
+  const nextImages = (state.images || []).map(img => {
+    // If uri is an absolute path (starts with file://), convert to relative filename
+    let filename = img.filename || img.uri;
+    if (filename && filename.includes('/')) {
+      filename = filename.split('/').pop();
+    }
+    return { ...img, filename, uri: undefined };
+  });
+
   return {
     ...createInitialState(),
     ...state,
@@ -53,6 +62,6 @@ function migrateState(state) {
     entities: state.entities || [],
     documentTypes: state.documentTypes || [],
     documentRecords: state.documentRecords || [],
-    images: state.images || []
+    images: nextImages
   };
 }
