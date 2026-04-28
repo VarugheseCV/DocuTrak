@@ -6,6 +6,7 @@ const {
   daysUntil,
   filterRows,
   findDuplicateDocumentRecord,
+  isExpiringWithin,
   sortRows
 } = require("../src/domain/documents");
 const { createBackupPayload, validateBackupPayload } = require("../src/domain/backup");
@@ -103,4 +104,61 @@ test("creates and validates schema-versioned backups", () => {
 
 test("rejects malformed backups", () => {
   assert.match(validateBackupPayload({ manifest: { schemaVersion: 1 }, data: {} }), /missing entityTypes/);
+});
+
+test("isExpiringWithin: identifies records expiring within the alert window", () => {
+  const now = new Date("2026-05-01T10:00:00");
+  const alertDays = 30;
+
+  // Within window (15 days left)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-05-16" }, alertDays, now),
+    true
+  );
+
+  // Exactly at boundary (30 days left)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-05-31" }, alertDays, now),
+    true
+  );
+
+  // Just outside window (31 days left)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-06-01" }, alertDays, now),
+    false
+  );
+
+  // Expiring today (0 days left)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-05-01" }, alertDays, now),
+    true
+  );
+
+  // Already expired (-1 day left)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-04-30" }, alertDays, now),
+    false
+  );
+
+  // Inactive record should be false
+  assert.strictEqual(
+    isExpiringWithin({ status: "Inactive", expiryDate: "2026-05-10" }, alertDays, now),
+    false
+  );
+
+  // Invalid expiry date
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "invalid-date" }, alertDays, now),
+    false
+  );
+
+  // Default alert window (30 days)
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-05-31" }, undefined, now),
+    true
+  );
+  assert.strictEqual(
+    isExpiringWithin({ status: "Active", expiryDate: "2026-06-01" }, undefined, now),
+    false
+  );
 });
