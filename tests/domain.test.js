@@ -162,3 +162,10 @@ test("isExpiringWithin: identifies records expiring within the alert window", ()
     false
   );
 });
+
+test("daysUntil: returns null for invalid dates", () => {
+  assert.equal(daysUntil("invalid-date"), null);
+  assert.equal(daysUntil(""), null);
+  assert.equal(daysUntil(undefined), null);
+  assert.equal(daysUntil(null), null);
+});
