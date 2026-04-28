@@ -1,12 +1,27 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ROUTES, TAB_ROUTES } from '../navigation/routes';
+import { ROUTES } from '../navigation/routes';
+import { lightColors, darkColors } from '../theme/theme';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ state, commit, children }) {
+  const themeMode = state.profile?.themeMode || 'dark';
+  const colors = themeMode === 'light' ? lightColors : darkColors;
+  const isDark = themeMode === 'dark';
+
+  const toggleTheme = useCallback(() => {
+    commit({
+      ...state,
+      profile: {
+        ...state.profile,
+        themeMode: isDark ? 'light' : 'dark'
+      }
+    });
+  }, [state, commit, isDark]);
+
   return (
-    <AppContext.Provider value={{ state, commit }}>
+    <AppContext.Provider value={{ state, commit, colors, isDark, toggleTheme }}>
       {children}
     </AppContext.Provider>
   );
@@ -21,11 +36,7 @@ export function useAppState() {
 export function useAppNavigation() {
   const navigation = useNavigation();
   return useCallback((route, params) => {
-    if (TAB_ROUTES.includes(route)) {
-      navigation.navigate(ROUTES.TABS, { screen: route, params });
-    } else {
-      navigation.navigate(route, params);
-    }
+    navigation.navigate(route, params);
   }, [navigation]);
 }
 

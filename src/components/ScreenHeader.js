@@ -1,11 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/theme';
+import { useAppState } from '../context/AppContext';
 
 export default function ScreenHeader({ title, onBack, rightAction, subtitle }) {
+  const { colors } = useAppState();
+
   return (
-    <View style={[styles.container, !onBack && styles.containerFlush]}>
+    <View style={[
+      styles.container,
+      { backgroundColor: colors.surface, borderBottomColor: colors.border },
+      !onBack && styles.containerFlush
+    ]}>
       {onBack ? (
         <TouchableOpacity
           onPress={onBack}
@@ -19,8 +25,8 @@ export default function ScreenHeader({ title, onBack, rightAction, subtitle }) {
         <View style={{ width: 24 }} />
       )}
       <View style={styles.center}>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-        <Text style={styles.title} numberOfLines={1}>{title}</Text>
+        {subtitle && <Text style={[styles.subtitle, { color: colors.primary }]}>{subtitle}</Text>}
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>
       </View>
       {rightAction || <View style={{ width: 24 }} />}
     </View>
@@ -35,15 +41,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 15,
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   containerFlush: {
     backgroundColor: 'transparent',
     borderBottomWidth: 0,
   },
   center: { flex: 1, alignItems: 'center' },
-  subtitle: { fontSize: 11, fontWeight: '800', color: colors.primary, letterSpacing: 2, marginBottom: 2 },
-  title: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+  subtitle: { fontSize: 11, fontWeight: '800', letterSpacing: 2, marginBottom: 2 },
+  title: { fontSize: 20, fontWeight: 'bold' },
 });
