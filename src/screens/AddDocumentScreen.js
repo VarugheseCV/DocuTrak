@@ -7,13 +7,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../theme/theme';
 import { createId } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
+import { ROUTES } from '../navigation/routes';
+import ScreenHeader from '../components/ScreenHeader';
 
 export default function AddDocumentScreen() {
   const { state, commit } = useAppState();
   const navigate = useAppNavigation();
   const params = useScreenParams();
 
-  // Pre-select entity if navigated from entity detail
   const [entityId, setEntityId] = useState(params.entityId || "");
   const [documentTypeId, setDocumentTypeId] = useState("");
   const [newDocumentTypeName, setNewDocumentTypeName] = useState("");
@@ -25,9 +26,7 @@ export default function AddDocumentScreen() {
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
-    if (selectedDate) {
-      setExpiryDate(selectedDate.toISOString().split('T')[0]);
-    }
+    if (selectedDate) setExpiryDate(selectedDate.toISOString().split('T')[0]);
   };
 
   async function pickImage() {
@@ -36,13 +35,8 @@ export default function AddDocumentScreen() {
       Alert.alert("Image access needed", "Allow image access to attach document photos.");
       return;
     }
-    const picked = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8
-    });
-    if (!picked.canceled) {
-      setImage(picked.assets[0]);
-    }
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    if (!picked.canceled) setImage(picked.assets[0]);
   }
 
   async function save() {
@@ -51,35 +45,19 @@ export default function AddDocumentScreen() {
 
     if (isCreatingType) {
       const trimmedName = newDocumentTypeName.trim();
-      if (!trimmedName) {
-        Alert.alert("Incomplete", "Please enter the new document type name.");
-        return;
-      }
-      // Check for duplicate document type name
-      const existingType = state.documentTypes.find(
-        dt => dt.active && dt.name.toLowerCase() === trimmedName.toLowerCase()
-      );
-      if (existingType) {
-        Alert.alert("Duplicate Type", `A document type named "${existingType.name}" already exists. Please select it from the list or use a different name.`);
-        return;
-      }
+      if (!trimmedName) { Alert.alert("Incomplete", "Please enter the new document type name."); return; }
+      const existingType = state.documentTypes.find(dt => dt.active && dt.name.toLowerCase() === trimmedName.toLowerCase());
+      if (existingType) { Alert.alert("Duplicate Type", `"${existingType.name}" already exists. Select it or use a different name.`); return; }
       finalDocumentTypeId = createId("doc-type");
       updatedDocTypes = [...updatedDocTypes, { id: finalDocumentTypeId, name: trimmedName, active: true }];
     } else if (!finalDocumentTypeId) {
-      Alert.alert("Incomplete", "Please select a document type or create a new one.");
-      return;
+      Alert.alert("Incomplete", "Please select a document type or create a new one."); return;
     }
 
-    if (!entityId || !expiryDate.trim()) {
-      Alert.alert("Incomplete", "Please select an entity and an expiry date.");
-      return;
-    }
+    if (!entityId || !expiryDate.trim()) { Alert.alert("Incomplete", "Please select an entity and an expiry date."); return; }
 
     const isDuplicate = state.documentRecords.some(d => d.entityId === entityId && d.documentTypeId === finalDocumentTypeId && d.status === "Active");
-    if (isDuplicate) {
-      Alert.alert("Duplicate Entry", "This document type already exists for the selected entity.");
-      return;
-    }
+    if (isDuplicate) { Alert.alert("Duplicate Entry", "This document type already exists for the selected entity."); return; }
 
     let imageObj = null;
     if (image) {
@@ -91,44 +69,28 @@ export default function AddDocumentScreen() {
     }
 
     const record = {
-      id: createId("document-record"),
-      entityId,
-      documentTypeId: finalDocumentTypeId,
-      expiryDate: expiryDate.trim(),
-      description: description.trim(),
-      imageIds: imageObj ? [imageObj.id] : [],
-      status: "Active"
+      id: createId("document-record"), entityId, documentTypeId: finalDocumentTypeId,
+      expiryDate: expiryDate.trim(), description: description.trim(),
+      imageIds: imageObj ? [imageObj.id] : [], status: "Active",
     };
 
     commit({
-      ...state,
-      documentTypes: updatedDocTypes,
+      ...state, documentTypes: updatedDocTypes,
       images: imageObj ? [...state.images, imageObj] : state.images,
-      documentRecords: [...state.documentRecords, record]
+      documentRecords: [...state.documentRecords, record],
     });
-
-    navigate("dashboard");
+    navigate(ROUTES.DASHBOARD);
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigate("dashboard")}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Add Document</Text>
-        <View style={{ width: 24 }} />
-      </View>
+      <ScreenHeader title="Add Document" onBack={() => navigate(ROUTES.DASHBOARD)} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.label}>Entity</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
           {state.entities.filter(e => e.active).map(e => (
-            <TouchableOpacity 
-              key={e.id} 
-              style={[styles.chip, entityId === e.id && styles.chipActive]}
-              onPress={() => setEntityId(e.id)}
-            >
+            <TouchableOpacity key={e.id} style={[styles.chip, entityId === e.id && styles.chipActive]} onPress={() => setEntityId(e.id)}>
               <Text style={[styles.chipText, entityId === e.id && styles.chipTextActive]}>{e.name}</Text>
             </TouchableOpacity>
           ))}
@@ -144,21 +106,11 @@ export default function AddDocumentScreen() {
         </View>
 
         {isCreatingType ? (
-          <TextInput 
-            style={styles.input} 
-            placeholder="e.g. Visa, Warranty..." 
-            placeholderTextColor={colors.textMuted}
-            value={newDocumentTypeName}
-            onChangeText={setNewDocumentTypeName}
-          />
+          <TextInput style={styles.input} placeholder="e.g. Visa, Warranty..." placeholderTextColor={colors.textMuted} value={newDocumentTypeName} onChangeText={setNewDocumentTypeName} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
             {state.documentTypes.filter(d => d.active).map(d => (
-              <TouchableOpacity 
-                key={d.id} 
-                style={[styles.chip, documentTypeId === d.id && styles.chipActive]}
-                onPress={() => setDocumentTypeId(d.id)}
-              >
+              <TouchableOpacity key={d.id} style={[styles.chip, documentTypeId === d.id && styles.chipActive]} onPress={() => setDocumentTypeId(d.id)}>
                 <Text style={[styles.chipText, documentTypeId === d.id && styles.chipTextActive]}>{d.name}</Text>
               </TouchableOpacity>
             ))}
@@ -168,35 +120,16 @@ export default function AddDocumentScreen() {
         <Text style={styles.label}>Expiry Date</Text>
         <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
           <Ionicons name="calendar-outline" size={24} color={colors.primary} />
-          <Text style={[styles.dateText, !expiryDate && { color: colors.textMuted }]}>
-            {expiryDate || "Select Date (YYYY-MM-DD)"}
-          </Text>
+          <Text style={[styles.dateText, !expiryDate && { color: colors.textMuted }]}>{expiryDate || "Select Date (YYYY-MM-DD)"}</Text>
         </TouchableOpacity>
-        
-        {showDatePicker && (
-          <DateTimePicker
-            value={expiryDate ? new Date(expiryDate) : new Date()}
-            mode="date"
-            display="default"
-            onChange={onDateChange}
-          />
-        )}
+        {showDatePicker && <DateTimePicker value={expiryDate ? new Date(expiryDate) : new Date()} mode="date" display="default" onChange={onDateChange} />}
 
         <Text style={styles.label}>Notes (optional)</Text>
-        <TextInput 
-          style={[styles.input, { height: 80, textAlignVertical: 'top' }]} 
-          multiline 
-          placeholder="Add any additional info..." 
-          placeholderTextColor={colors.textMuted}
-          value={description}
-          onChangeText={setDescription}
-        />
+        <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} multiline placeholder="Add any additional info..." placeholderTextColor={colors.textMuted} value={description} onChangeText={setDescription} />
 
         <Text style={styles.label}>Upload Image</Text>
         <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-          {image ? (
-            <Image source={{ uri: image.uri }} style={styles.previewImage} />
-          ) : (
+          {image ? <Image source={{ uri: image.uri }} style={styles.previewImage} /> : (
             <>
               <Ionicons name="camera-outline" size={32} color={colors.textMuted} />
               <Text style={styles.imagePickerText}>Add Photo</Text>
@@ -216,78 +149,20 @@ export default function AddDocumentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 15,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: { fontSize: 20, fontWeight: 'bold', color: colors.text },
   content: { padding: 16, paddingBottom: 40 },
   label: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8, marginTop: 16 },
   pickerRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: 10,
-  },
-  chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border, marginRight: 10 },
+  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { color: colors.text, fontWeight: '500' },
   chipTextActive: { color: colors.text, fontWeight: 'bold' },
-  datePickerBtn: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateText: {
-    fontSize: 16,
-    color: colors.text,
-    marginLeft: 10,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: colors.text,
-  },
-  imagePicker: {
-    height: 120,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
+  datePickerBtn: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center' },
+  dateText: { fontSize: 16, color: colors.text, marginLeft: 10 },
+  input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 14, fontSize: 16, color: colors.text },
+  imagePicker: { height: 120, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderStyle: 'dashed', borderRadius: 12, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   imagePickerText: { color: colors.textMuted, marginTop: 8, fontWeight: '500' },
   previewImage: { width: '100%', height: '100%' },
   footer: { padding: 16, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border },
-  saveButton: {
-    backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  saveButtonText: { color: colors.surface, fontWeight: 'bold', fontSize: 16 }
+  saveButton: { backgroundColor: colors.primary, padding: 16, borderRadius: 12, alignItems: 'center' },
+  saveButtonText: { color: colors.surface, fontWeight: 'bold', fontSize: 16 },
 });
