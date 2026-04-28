@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from "expo-file-system/legacy";
@@ -27,7 +27,8 @@ export default function DocumentDetailScreen() {
   if (isExpired) { statusText = "Expired"; statusColor = colors.danger; }
   else if (isExpiringSoon) { statusText = "Expiring Soon"; statusColor = colors.warning; }
 
-  const images = (record.imageIds || []).map(id => state.images.find(img => img.id === id)).filter(Boolean);
+  const imageMap = useMemo(() => new Map(state.images.map(img => [img.id, img])), [state.images]);
+  const images = useMemo(() => (record.imageIds || []).map(id => imageMap.get(id)).filter(Boolean), [record.imageIds, imageMap]);
 
   async function cleanupImages() {
     for (const img of images) {
