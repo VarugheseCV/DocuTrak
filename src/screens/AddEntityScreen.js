@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { colors } from '../theme/theme';
-import { createId } from '../domain/documents';
-import { useAppState, useAppNavigation } from '../context/AppContext';
+import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
+import { createId } from '../domain/documents';
 import ScreenHeader from '../components/ScreenHeader';
 
 export default function AddEntityScreen() {
-  const { state, commit } = useAppState();
+  const { state, commit, colors } = useAppState();
   const navigate = useAppNavigation();
+  const params = useScreenParams();
 
-  const [name, setName] = useState("");
-  const [entityTypeId, setEntityTypeId] = useState("");
+  const editEntityId = params.editEntityId;
+  const existingEntity = editEntityId ? state.entities.find(e => e.id === editEntityId) : null;
+
+  const [name, setName] = useState(existingEntity?.name || "");
+  const [entityTypeId, setEntityTypeId] = useState(existingEntity?.entityTypeId || "");
   const [newTypeName, setNewTypeName] = useState("");
   const [isCreatingType, setIsCreatingType] = useState(false);
 
@@ -33,39 +36,50 @@ export default function AddEntityScreen() {
       Alert.alert("Incomplete", "Please select an entity type or create a new one."); return;
     }
 
-    const duplicateEntity = state.entities.find(e => e.active && e.name.toLowerCase() === trimmedName.toLowerCase() && e.entityTypeId === finalTypeId);
+    const duplicateEntity = state.entities.find(e => e.active && e.name.toLowerCase() === trimmedName.toLowerCase() && e.entityTypeId === finalTypeId && e.id !== editEntityId);
     if (duplicateEntity) { Alert.alert("Duplicate Entity", `"${duplicateEntity.name}" already exists under this type.`); return; }
+
+    const updatedEntity = {
+      id: editEntityId || createId("entity"), name: trimmedName, entityTypeId: finalTypeId, active: true
+    };
+
+    let newEntities = state.entities;
+    if (editEntityId) {
+      newEntities = newEntities.map(e => e.id === editEntityId ? updatedEntity : e);
+    } else {
+      newEntities = [...newEntities, updatedEntity];
+    }
 
     commit({
       ...state,
       entityTypes: updatedTypes,
-      entities: [...state.entities, { id: createId("entity"), name: trimmedName, entityTypeId: finalTypeId, active: true }],
+      entities: newEntities,
     });
     navigate(ROUTES.ENTITIES);
   }
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title="Add Entity" onBack={() => navigate(ROUTES.ENTITIES)} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScreenHeader title={editEntityId ? "Edit Entity" : "Add Entity"} onBack={() => navigate(ROUTES.ENTITIES)} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.label}>Entity Name</Text>
-        <TextInput style={styles.input} placeholder="e.g. John Doe, Tesla Model 3..." placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
+        <Text style={[styles.label, { color: colors.text }]}>Entity Name</Text>
+        <TextInput style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]} placeholder="e.g. John Doe, Tesla Model 3..." placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
 
         <View style={styles.typeHeader}>
-          <Text style={styles.label}>Entity Type</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Entity Type</Text>
           <TouchableOpacity onPress={() => setIsCreatingType(!isCreatingType)}>
-            <Text style={styles.toggleText}>{isCreatingType ? "Select Existing" : "+ Create New"}</Text>
+            <Text style={[styles.toggleText, { color: colors.primary }]}>{isCreatingType ? "Select Existing" : "+ Create New"}</Text>
           </TouchableOpacity>
         </View>
 
         {isCreatingType ? (
-          <TextInput style={styles.input} placeholder="e.g. Gadget, Pet..." placeholderTextColor={colors.textMuted} value={newTypeName} onChangeText={setNewTypeName} />
+          <TextInput style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]} placeholder="e.g. Gadget, Pet..." placeholderTextColor={colors.textMuted} value={newTypeName} onChangeText={setNewTypeName} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
             {state.entityTypes.filter(t => t.active).map(t => (
-              <TouchableOpacity key={t.id} style={[styles.chip, entityTypeId === t.id && styles.chipActive]} onPress={() => setEntityTypeId(t.id)}>
-                <Text style={[styles.chipText, entityTypeId === t.id && styles.chipTextActive]}>{t.name}</Text>
+              <TouchableOpacity key={t.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, entityTypeId === t.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setEntityTypeId(t.id)}>
+                <Text style={[styles.chipText, { color: colors.text }, entityTypeId === t.id && { fontWeight: 'bold' }]}>{t.name}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -73,8 +87,8 @@ export default function AddEntityScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton} onPress={save}>
-          <Text style={styles.saveButtonText}>SAVE ENTITY</Text>
+        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={save}>
+          <Text style={[styles.saveButtonText, { color: '#FFF' }]}>SAVE ENTITY</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -82,18 +96,16 @@ export default function AddEntityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  label: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 8, marginTop: 16 },
+  label: { fontSize: 15, fontWeight: '700', marginBottom: 8, marginTop: 16 },
   typeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  toggleText: { color: colors.primary, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
+  toggleText: { fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
   pickerRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border, marginRight: 10 },
-  chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.text, fontWeight: '500' },
-  chipTextActive: { color: colors.text, fontWeight: 'bold' },
-  input: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16, fontSize: 16, color: colors.text },
+  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1, marginRight: 10 },
+  chipText: { fontWeight: '500' },
+  input: { borderWidth: 1, borderRadius: 16, padding: 16, fontSize: 16 },
   footer: { padding: 20, paddingBottom: 30 },
-  saveButton: { backgroundColor: colors.primary, padding: 16, borderRadius: 16, alignItems: 'center' },
-  saveButtonText: { color: colors.text, fontWeight: '900', fontSize: 16 },
+  saveButton: { padding: 16, borderRadius: 16, alignItems: 'center' },
+  saveButtonText: { fontWeight: '900', fontSize: 16 },
 });

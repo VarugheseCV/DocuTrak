@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -9,7 +8,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
 
 export default function EntityDetailScreen() {
-  const { state } = useAppState();
+  const { state, colors } = useAppState();
   const navigate = useAppNavigation();
   const params = useScreenParams();
 
@@ -34,19 +33,27 @@ export default function EntityDetailScreen() {
     else if (isExpiringSoon) statusColor = colors.warning;
 
     return (
-      <TouchableOpacity style={styles.listItem} onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })}>
+      <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surface }]} onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })}>
         <View style={styles.itemLeft}>
-          <Text style={styles.itemName}>{item.documentType?.name || "Document"}</Text>
+          <Text style={[styles.itemName, { color: colors.text }]}>{item.documentType?.name || "Document"}</Text>
           <Text style={[styles.itemDate, { color: statusColor }]}>{item.expiryDate}</Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
       </TouchableOpacity>
     );
-  }, [state]);
+  }, [state, colors]);
 
   return (
-    <View style={styles.container}>
-      <ScreenHeader title={entity.name} onBack={() => navigate(ROUTES.ENTITIES)} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScreenHeader 
+        title={entity.name} 
+        onBack={() => navigate(ROUTES.ENTITIES)} 
+        rightAction={
+          <TouchableOpacity onPress={() => navigate(ROUTES.ADD_ENTITY, { editEntityId: entity.id })}>
+            <Ionicons name="pencil" size={24} color={colors.primary} />
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={records}
@@ -55,28 +62,19 @@ export default function EntityDetailScreen() {
         contentContainerStyle={styles.content}
         ListEmptyComponent={<EmptyState icon="document-outline" title="No documents found" subtitle="Tap + to add a document for this entity." />}
       />
-
-      <TouchableOpacity style={styles.fab} onPress={() => navigate(ROUTES.ADD_DOCUMENT, { entityId: entity.id })}>
-        <Ionicons name="add" size={30} color={colors.surface} />
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 100 },
+  container: { flex: 1 },
+  content: { padding: 16, paddingBottom: 40 },
   listItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: colors.surface, padding: 16, borderRadius: 12, marginBottom: 8,
+    padding: 16, borderRadius: 12, marginBottom: 8,
     shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
   itemLeft: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: '600', color: colors.text },
+  itemName: { fontSize: 16, fontWeight: '600' },
   itemDate: { fontSize: 14, fontWeight: 'bold', marginTop: 4 },
-  fab: {
-    position: 'absolute', bottom: 30, right: 20, width: 60, height: 60, borderRadius: 30,
-    backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
 });

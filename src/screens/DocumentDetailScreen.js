@@ -2,14 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from "expo-file-system/legacy";
-import { colors } from '../theme/theme';
 import { daysUntil } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 import ScreenHeader from '../components/ScreenHeader';
 
 export default function DocumentDetailScreen() {
-  const { state, commit } = useAppState();
+  const { state, commit, colors } = useAppState();
   const navigate = useAppNavigation();
   const params = useScreenParams();
 
@@ -58,18 +57,18 @@ export default function DocumentDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title={documentType?.name} onBack={() => navigate(ROUTES.DASHBOARD)} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.infoCard}>
+        <View style={[styles.infoCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={colors.textMuted} />
-            <Text style={styles.infoText}>{entity?.name}</Text>
+            <Text style={[styles.infoText, { color: colors.text }]}>{entity?.name}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
-            <Text style={styles.infoText}>Expiry: {record.expiryDate}</Text>
+            <Text style={[styles.infoText, { color: colors.text }]}>Expiry: {record.expiryDate}</Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="ellipse" size={16} color={statusColor} style={{ marginLeft: 2 }} />
@@ -78,7 +77,7 @@ export default function DocumentDetailScreen() {
           {daysRem !== null && (
             <View style={styles.infoRow}>
               <Ionicons name="time-outline" size={20} color={colors.textMuted} />
-              <Text style={styles.infoText}>
+              <Text style={[styles.infoText, { color: colors.text }]}>
                 {isExpired ? `Expired ${Math.abs(daysRem)} days ago` : `${daysRem} days remaining`}
               </Text>
             </View>
@@ -87,7 +86,7 @@ export default function DocumentDetailScreen() {
 
         {images.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Image Preview</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Image Preview</Text>
             {images.map(img => (
               <Image key={img.id} source={{ uri: img.uri }} style={styles.imagePreview} resizeMode="contain" />
             ))}
@@ -96,13 +95,16 @@ export default function DocumentDetailScreen() {
 
         {!!record.description && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes:</Text>
-            <Text style={styles.notesText}>{record.description}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Notes:</Text>
+            <Text style={[styles.notesText, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}>{record.description}</Text>
           </View>
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.primary }]} onPress={() => navigate(ROUTES.ADD_DOCUMENT, { editDocId: record.id })}>
+          <Text style={styles.actionBtnText}>EDIT</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.danger }]} onPress={deleteRecord}>
           <Text style={styles.actionBtnText}>DELETE</Text>
         </TouchableOpacity>
@@ -112,16 +114,16 @@ export default function DocumentDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
-  infoCard: { backgroundColor: colors.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, marginBottom: 24 },
+  infoCard: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 24 },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  infoText: { fontSize: 16, color: colors.text, marginLeft: 10 },
+  infoText: { fontSize: 16, marginLeft: 10 },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
   imagePreview: { width: '100%', height: 250, borderRadius: 12, backgroundColor: '#000', marginBottom: 10 },
-  notesText: { fontSize: 16, color: colors.text, backgroundColor: colors.surface, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border },
-  footer: { flexDirection: 'row', padding: 16, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border, justifyContent: 'space-around' },
+  notesText: { fontSize: 16, padding: 16, borderRadius: 12, borderWidth: 1 },
+  footer: { flexDirection: 'row', padding: 16, borderTopWidth: 1, justifyContent: 'space-around' },
   actionBtn: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center', marginHorizontal: 8 },
-  actionBtnText: { color: colors.surface, fontWeight: 'bold', fontSize: 16 },
+  actionBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
 });
