@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,24 +13,34 @@ export default function DashboardScreen() {
   const navigate = useAppNavigation();
   const alertDays = Number(state.profile?.alertDays || 30);
 
-  // --- Derived state (computed once per render) ---
-  const activeRecords = state.documentRecords
-    .filter(r => r.status === "Active")
-    .map(r => ({
-      ...r,
-      entity: state.entities.find(e => e.id === r.entityId),
-      documentType: state.documentTypes.find(dt => dt.id === r.documentTypeId),
-      daysRemaining: daysUntil(r.expiryDate),
-    }))
-    .filter(r => r.daysRemaining !== null);
+  // --- Derived state (memoized for performance) ---
+  const { activeRecords, expiringSoon, expired } = useMemo(() => {
+    // 1. Build maps for O(1) lookups
+    const entityMap = new Map(state.entities.map(e => [e.id, e]));
+    const typeMap = new Map(state.documentTypes.map(dt => [dt.id, dt]));
 
-  const expiringSoon = activeRecords
-    .filter(r => r.daysRemaining >= 0 && r.daysRemaining <= alertDays)
-    .sort((a, b) => a.daysRemaining - b.daysRemaining);
+    // 2. Filter and map records using the maps
+    const active = state.documentRecords
+      .filter(r => r.status === "Active")
+      .map(r => ({
+        ...r,
+        entity: entityMap.get(r.entityId),
+        documentType: typeMap.get(r.documentTypeId),
+        daysRemaining: daysUntil(r.expiryDate),
+      }))
+      .filter(r => r.daysRemaining !== null);
 
-  const expired = activeRecords
-    .filter(r => r.daysRemaining < 0)
-    .sort((a, b) => a.daysRemaining - b.daysRemaining);
+    // 3. Compute soon and expired
+    const soon = active
+      .filter(r => r.daysRemaining >= 0 && r.daysRemaining <= alertDays)
+      .sort((a, b) => a.daysRemaining - b.daysRemaining);
+
+    const exp = active
+      .filter(r => r.daysRemaining < 0)
+      .sort((a, b) => a.daysRemaining - b.daysRemaining);
+
+    return { activeRecords: active, expiringSoon: soon, expired: exp };
+  }, [state.documentRecords, state.entities, state.documentTypes, alertDays]);
 
   const totalEntities = state.entities.filter(e => e.active).length;
   const totalActive = activeRecords.length;
