@@ -70,10 +70,20 @@ export default function DashboardScreen() {
   // --- Render helpers ---
   const renderRightActions = useCallback((docId) => (
     <View style={{ flexDirection: 'row' }}>
-      <TouchableOpacity style={styles.actionBtnEdit} onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: docId })}>
+      <TouchableOpacity
+        style={styles.actionBtnEdit}
+        onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: docId })}
+        accessibilityRole="button"
+        accessibilityLabel="Edit document"
+      >
         <Ionicons name="pencil" size={24} color="#FFF" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionBtnDelete} onPress={() => handleDeleteRecord(docId)}>
+      <TouchableOpacity
+        style={styles.actionBtnDelete}
+        onPress={() => handleDeleteRecord(docId)}
+        accessibilityRole="button"
+        accessibilityLabel="Delete document"
+      >
         <Ionicons name="trash" size={24} color="#FFF" />
       </TouchableOpacity>
     </View>
@@ -245,7 +255,12 @@ export default function DashboardScreen() {
           <Text style={styles.brand}>DOCUTRAK</Text>
           <Text style={styles.headerTitle}>Dashboard</Text>
         </View>
-        <TouchableOpacity onPress={() => navigate(ROUTES.SETTINGS)} style={styles.headerIconBg}>
+        <TouchableOpacity
+          onPress={() => navigate(ROUTES.SETTINGS)}
+          style={styles.headerIconBg}
+          accessibilityRole="button"
+          accessibilityLabel="Open settings"
+        >
           <Ionicons name="settings-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>

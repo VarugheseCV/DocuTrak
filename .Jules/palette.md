@@ -1,0 +1,3 @@
+## 2024-04-28 - Micro-UX and Accessibility Enhancements
+**Learning:** Found several icon-only buttons across the application (e.g. `EntitiesScreen` swipe actions, `ScreenHeader` back button, `DashboardScreen` quick actions) that were entirely missing accessibility descriptions, rendering them unusable for screen readers. Also observed that the `SearchBar` lacked a "clear" button, forcing users to repeatedly tap backspace.
+**Action:** Always ensure `TouchableOpacity` components wrapping icons include `accessibilityRole="button"` and `accessibilityLabel` with a clear action description. For future text inputs with a search function, consider adding a conditional clear button (`x` icon) if text is present to improve efficiency.

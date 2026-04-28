@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/theme';
 
@@ -14,6 +14,17 @@ export default function SearchBar({ value, onChangeText, placeholder = "Search..
         value={value}
         onChangeText={onChangeText}
       />
+      {value ? (
+        <TouchableOpacity
+          onPress={() => onChangeText("")}
+          accessibilityRole="button"
+          accessibilityLabel="Clear search"
+          style={styles.clearButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -35,5 +46,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     color: colors.text,
     fontSize: 16,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
 });

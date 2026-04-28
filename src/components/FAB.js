@@ -7,7 +7,13 @@ import { colors } from '../theme/theme';
 export default function FAB({ label, onPress, icon = "add" }) {
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity style={styles.container} activeOpacity={0.8} onPress={onPress}>
+      <TouchableOpacity
+        style={styles.container}
+        activeOpacity={0.8}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label || "Add"}
+      >
         <LinearGradient colors={[colors.primary, "#0051a8"]} style={styles.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <Ionicons name={icon} size={24} color={colors.text} />
           {label && <Text style={styles.label}>{label}</Text>}

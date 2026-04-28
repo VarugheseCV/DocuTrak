@@ -7,7 +7,12 @@ export default function ScreenHeader({ title, onBack, rightAction, subtitle }) {
   return (
     <View style={[styles.container, !onBack && styles.containerFlush]}>
       {onBack ? (
-        <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity
+          onPress={onBack}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
       ) : (

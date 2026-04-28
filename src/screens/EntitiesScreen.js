@@ -37,10 +37,20 @@ export default function EntitiesScreen() {
 
   const renderRightActions = useCallback((entityId) => (
     <View style={{ flexDirection: 'row' }}>
-      <TouchableOpacity style={styles.actionBtnEdit} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entityId })}>
+      <TouchableOpacity
+        style={styles.actionBtnEdit}
+        onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entityId })}
+        accessibilityRole="button"
+        accessibilityLabel="Edit entity"
+      >
         <Ionicons name="pencil" size={24} color="#FFF" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.actionBtnDelete} onPress={() => handleDeleteEntity(entityId)}>
+      <TouchableOpacity
+        style={styles.actionBtnDelete}
+        onPress={() => handleDeleteEntity(entityId)}
+        accessibilityRole="button"
+        accessibilityLabel="Delete entity"
+      >
         <Ionicons name="trash" size={24} color="#FFF" />
       </TouchableOpacity>
     </View>
