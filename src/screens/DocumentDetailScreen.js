@@ -31,12 +31,12 @@ export default function DocumentDetailScreen() {
   const images = useMemo(() => (record.imageIds || []).map(id => imageMap.get(id)).filter(Boolean), [record.imageIds, imageMap]);
 
   async function cleanupImages() {
-    for (const img of images) {
+    await Promise.all(images.map(async (img) => {
       try {
         const info = await FileSystem.getInfoAsync(img.uri);
         if (info.exists) await FileSystem.deleteAsync(img.uri, { idempotent: true });
       } catch (_) { /* ignore */ }
-    }
+    }));
   }
 
   function deleteRecord() {
