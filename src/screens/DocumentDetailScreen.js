@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Modal, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from "expo-file-system/legacy";
 import { daysUntil } from '../domain/documents';
@@ -29,6 +29,7 @@ export default function DocumentDetailScreen() {
 
   const imageMap = useMemo(() => new Map(state.images.map(img => [img.id, img])), [state.images]);
   const images = useMemo(() => (record.imageIds || []).map(id => imageMap.get(id)).filter(Boolean), [record.imageIds, imageMap]);
+  const [selectedImage, setSelectedImage] = React.useState(null);
 
   async function cleanupImages() {
     await Promise.all(images.map(async (img) => {
@@ -89,7 +90,9 @@ export default function DocumentDetailScreen() {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Image Preview</Text>
             {images.map(img => (
-              <Image key={img.id} source={{ uri: img.uri }} style={styles.imagePreview} resizeMode="contain" />
+              <TouchableOpacity key={img.id} onPress={() => setSelectedImage(img)} accessibilityRole="button" accessibilityLabel="View full image">
+                <Image source={{ uri: img.uri }} style={styles.imagePreview} resizeMode="cover" />
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -110,6 +113,18 @@ export default function DocumentDetailScreen() {
           <Text style={styles.actionBtnText}>DELETE</Text>
         </TouchableOpacity>
       </View>
+      {selectedImage && (
+        <Modal visible={true} transparent={true} animationType="fade" onRequestClose={() => setSelectedImage(null)}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setSelectedImage(null)} accessibilityRole="button" accessibilityLabel="Close full image">
+              <Ionicons name="close" size={32} color="#FFF" />
+            </TouchableOpacity>
+            <ScrollView maximumZoomScale={3} minimumZoomScale={1} centerContent contentContainerStyle={styles.modalImageContainer}>
+               <Image source={{ uri: selectedImage.uri }} style={styles.fullScreenImage} resizeMode="contain" />
+            </ScrollView>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -127,4 +142,8 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', padding: 16, borderTopWidth: 1, justifyContent: 'space-around' },
   actionBtn: { flex: 1, padding: 16, borderRadius: 12, alignItems: 'center', marginHorizontal: 8 },
   actionBtnText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
+  modalCloseBtn: { position: 'absolute', top: 40, right: 20, zIndex: 1, padding: 10 },
+  modalImageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' },
+  fullScreenImage: { width: Dimensions.get('window').width, height: Dimensions.get('window').height * 0.8 },
 });
