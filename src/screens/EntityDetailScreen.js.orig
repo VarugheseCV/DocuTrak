@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { daysUntil } from '../domain/documents';
@@ -15,19 +15,14 @@ export default function EntityDetailScreen() {
   const entity = state.entities.find(e => e.id === params.id);
   if (!entity) return null;
 
-  const records = useMemo(() => {
-    const documentTypeMap = new Map();
-    state.documentTypes.forEach(dt => documentTypeMap.set(dt.id, dt));
-
-    return state.documentRecords
-      .filter(r => r.entityId === entity.id && r.status === "Active")
-      .map(record => ({
-        ...record,
-        documentType: documentTypeMap.get(record.documentTypeId),
-        daysRemaining: daysUntil(record.expiryDate),
-      }))
-      .sort((a, b) => a.daysRemaining - b.daysRemaining);
-  }, [state.documentRecords, state.documentTypes, entity.id]);
+  const records = state.documentRecords
+    .filter(r => r.entityId === entity.id && r.status === "Active")
+    .map(record => ({
+      ...record,
+      documentType: state.documentTypes.find(dt => dt.id === record.documentTypeId),
+      daysRemaining: daysUntil(record.expiryDate),
+    }))
+    .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
   const renderItem = useCallback(({ item }) => {
     const isExpired = item.daysRemaining < 0;

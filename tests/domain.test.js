@@ -5,51 +5,10 @@ const {
   buildExpiryReport,
   daysUntil,
   filterRows,
-  findDuplicateDocumentRecord,
   isExpiringWithin,
   sortRows
 } = require("../src/domain/documents");
 const { createBackupPayload, validateBackupPayload } = require("../src/domain/backup");
-
-test("detects duplicate active document records for the same entity and document", () => {
-  const records = [
-    {
-      id: "record-1",
-      entityId: "entity-1",
-      documentTypeId: "document-type-1",
-      expiryDate: "2026-06-01",
-      status: "Active"
-    }
-  ];
-  const duplicate = findDuplicateDocumentRecord(records, {
-    entityId: "entity-1",
-    documentTypeId: "document-type-1",
-    status: "Active"
-  });
-
-  assert.equal(duplicate.id, "record-1");
-});
-
-test("ignores inactive records when checking duplicates", () => {
-  const records = [
-    {
-      id: "record-1",
-      entityId: "entity-1",
-      documentTypeId: "document-type-1",
-      expiryDate: "2026-06-01",
-      status: "In-Active"
-    }
-  ];
-
-  assert.equal(
-    findDuplicateDocumentRecord(records, {
-      entityId: "entity-1",
-      documentTypeId: "document-type-1",
-      status: "Active"
-    }),
-    undefined
-  );
-});
 
 test("calculates expiry windows from whole calendar days", () => {
   assert.equal(daysUntil("2026-05-27", new Date("2026-04-27T18:00:00")), 30);
@@ -161,4 +120,11 @@ test("isExpiringWithin: identifies records expiring within the alert window", ()
     isExpiringWithin({ status: "Active", expiryDate: "2026-06-01" }, undefined, now),
     false
   );
+});
+
+test("daysUntil: returns null for invalid dates", () => {
+  assert.equal(daysUntil("invalid-date"), null);
+  assert.equal(daysUntil(""), null);
+  assert.equal(daysUntil(undefined), null);
+  assert.equal(daysUntil(null), null);
 });

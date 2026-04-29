@@ -45,7 +45,12 @@ export async function importBackup() {
   }
   const asset = picked.assets[0];
   const content = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
-  const payload = JSON.parse(content);
+  let payload;
+  try {
+    payload = JSON.parse(content);
+  } catch (e) {
+    throw new Error("Invalid backup file: Not a valid JSON document.");
+  }
   const error = validateBackupPayload(payload);
   if (error) {
     throw new Error(error);
