@@ -8,8 +8,7 @@ export default function ScreenHeader({ title, onBack, rightAction, subtitle }) {
   return (
     <View style={[
       styles.container, 
-      { backgroundColor: colors.surface, borderBottomColor: colors.border },
-      !onBack && styles.containerFlush
+      { backgroundColor: colors.background }
     ]}>
       {onBack ? (
         <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -22,7 +21,7 @@ export default function ScreenHeader({ title, onBack, rightAction, subtitle }) {
         {subtitle && <Text style={[styles.subtitle, { color: colors.primary }]}>{subtitle}</Text>}
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{title}</Text>
       </View>
-      {rightAction || <View style={{ width: 24 }} />}
+      {rightAction ? rightAction : <View style={{ width: 24 }} />}
     </View>
   );
 }
@@ -35,13 +34,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  containerFlush: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 0,
   },
   center: { flex: 1, alignItems: 'center' },
   subtitle: { fontSize: 11, fontWeight: '800', letterSpacing: 2, marginBottom: 2 },
-  title: { fontSize: 20, fontWeight: 'bold' },
+  title: { fontSize: 20, fontWeight: '700' },
 });

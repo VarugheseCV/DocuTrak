@@ -51,7 +51,7 @@ export default function DocumentCard({ item, index = 0, onDelete }) {
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <Swipeable renderRightActions={renderRightActions}>
-        <TouchableOpacity onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })} style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })} style={[styles.listItem, { backgroundColor: colors.surface }]} activeOpacity={0.7}>
           <View style={[styles.itemIcon, { backgroundColor: iconBg }]}>
             <Ionicons name="document-text" size={22} color={iconColor} />
           </View>
@@ -71,15 +71,20 @@ export default function DocumentCard({ item, index = 0, onDelete }) {
 
 const styles = StyleSheet.create({
   listItem: {
-    flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 20,
-    marginBottom: 12, borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  itemIcon: { width: 48, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  itemIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   itemLeft: { flex: 1 },
-  itemName: { fontSize: 17, fontWeight: '800' },
-  itemSub: { fontSize: 14, marginTop: 4, fontWeight: '500' },
-  itemDate: { fontSize: 15, fontWeight: '800' },
-  itemBadge: { fontSize: 12, marginTop: 4, fontWeight: '700' },
-  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
-  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
+  itemName: { fontSize: 16, fontWeight: '700' },
+  itemSub: { fontSize: 13, marginTop: 2, fontWeight: '500' },
+  itemDate: { fontSize: 14, fontWeight: '700' },
+  itemBadge: { fontSize: 12, marginTop: 2, fontWeight: '600' },
+  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
+  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
 });

@@ -7,23 +7,25 @@ export default function StatsRow({ totalEntities, expiringSoonCount, expiredCoun
 
   return (
     <View style={styles.statsRow}>
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
         <View style={styles.statHeader}>
-          <Ionicons name="people" size={22} color={colors.primary} />
+          <Ionicons name="people" size={20} color={colors.primary} />
           <Text style={[styles.statValue, { color: colors.text }]}>{totalEntities}</Text>
         </View>
         <Text style={[styles.statLabel, { color: colors.textMuted }]}>Entities</Text>
       </View>
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      
+      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
         <View style={styles.statHeader}>
-          <Ionicons name="time" size={22} color={colors.accent} />
+          <Ionicons name="time" size={20} color={colors.warning} />
           <Text style={[styles.statValue, { color: colors.text }]}>{expiringSoonCount}</Text>
         </View>
         <Text style={[styles.statLabel, { color: colors.textMuted }]}>Expiring</Text>
       </View>
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      
+      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
         <View style={styles.statHeader}>
-          <Ionicons name="alert-circle" size={22} color={colors.danger} />
+          <Ionicons name="alert-circle" size={20} color={colors.danger} />
           <Text style={[styles.statValue, { color: colors.text }]}>{expiredCount}</Text>
         </View>
         <Text style={[styles.statLabel, { color: colors.textMuted }]}>Expired</Text>
@@ -33,9 +35,29 @@ export default function StatsRow({ totalEntities, expiringSoonCount, expiredCoun
 }
 
 const styles = StyleSheet.create({
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  statCard: { flex: 1, padding: 16, borderRadius: 20, borderWidth: 1 },
-  statHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  statValue: { fontSize: 28, fontWeight: '900' },
-  statLabel: { fontSize: 13, fontWeight: '600' },
+  statsRow: { 
+    flexDirection: 'row', 
+    gap: 12, 
+    marginBottom: 24 
+  },
+  statCard: { 
+    flex: 1, 
+    paddingVertical: 14,
+    paddingHorizontal: 12, 
+    borderRadius: 16,
+    // Soft depth without borders
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  statHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 12,
+    marginBottom: 6 
+  },
+  statValue: { fontSize: 22, fontWeight: '800' },
+  statLabel: { fontSize: 12, fontWeight: '500' },
 });

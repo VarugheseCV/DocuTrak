@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { createId } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -96,65 +97,79 @@ export default function AddDocumentScreen() {
     navigate(ROUTES.DASHBOARD);
   }
 
+  const renderChip = (id, name, isSelected, onPress) => {
+    if (isSelected) {
+      return (
+        <TouchableOpacity key={id} onPress={onPress} activeOpacity={0.8} style={styles.chipWrapper}>
+          <LinearGradient colors={["#3A5FCD", colors.primary]} style={[styles.chip, { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]} start={{x:0, y:0}} end={{x:1, y:1}}>
+            <Text style={[styles.chipText, { color: '#FFF', fontWeight: '700' }]}>{name}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity key={id} onPress={onPress} activeOpacity={0.6} style={styles.chipWrapper}>
+        <View style={[styles.chip, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.chipText, { color: colors.textMuted }]}>{name}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader title="Add Document" onBack={() => navigate(ROUTES.DASHBOARD)} />
+      <ScreenHeader title={editDocId ? "Edit Document" : "Add Document"} onBack={() => navigate(ROUTES.DASHBOARD)} />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={[styles.label, { color: colors.text }]}>Entity</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-          {state.entities.filter(e => e.active).map(e => (
-            <TouchableOpacity key={e.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, entityId === e.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setEntityId(e.id)}>
-              <Text style={[styles.chipText, { color: colors.text }, entityId === e.id && { fontWeight: 'bold' }]}>{e.name}</Text>
-            </TouchableOpacity>
-          ))}
+          {state.entities.filter(e => e.active).map(e => renderChip(e.id, e.name, entityId === e.id, () => setEntityId(e.id)))}
         </ScrollView>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[styles.label, { color: colors.text }]}>Document Type</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+          <Text style={[styles.label, { color: colors.text, marginTop: 0 }]}>Document Type</Text>
           <TouchableOpacity onPress={() => setIsCreatingType(!isCreatingType)}>
-            <Text style={{ color: colors.primary, fontWeight: 'bold', marginTop: 16, marginBottom: 8 }}>
+            <Text style={{ color: colors.primary, fontWeight: '700', marginBottom: 8, fontSize: 13 }}>
               {isCreatingType ? "Select Existing" : "+ Create New"}
             </Text>
           </TouchableOpacity>
         </View>
 
         {isCreatingType ? (
-          <TextInput style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]} placeholder="e.g. Visa, Warranty..." placeholderTextColor={colors.textMuted} value={newDocumentTypeName} onChangeText={setNewDocumentTypeName} />
+          <TextInput style={[styles.input, { backgroundColor: colors.surface, color: colors.text }]} placeholder="e.g. Visa, Warranty..." placeholderTextColor={colors.textMuted} value={newDocumentTypeName} onChangeText={setNewDocumentTypeName} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-            {state.documentTypes.filter(d => d.active).map(d => (
-              <TouchableOpacity key={d.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, documentTypeId === d.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setDocumentTypeId(d.id)}>
-                <Text style={[styles.chipText, { color: colors.text }, documentTypeId === d.id && { fontWeight: 'bold' }]}>{d.name}</Text>
-              </TouchableOpacity>
-            ))}
+            {state.documentTypes.filter(d => d.active).map(d => renderChip(d.id, d.name, documentTypeId === d.id, () => setDocumentTypeId(d.id)))}
           </ScrollView>
         )}
 
         <Text style={[styles.label, { color: colors.text }]}>Expiry Date</Text>
-        <TouchableOpacity style={[styles.datePickerBtn, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => setShowDatePicker(true)}>
-          <Ionicons name="calendar-outline" size={24} color={colors.primary} />
-          <Text style={[styles.dateText, { color: colors.text }, !expiryDate && { color: colors.textMuted }]}>{expiryDate || "Select Date (YYYY-MM-DD)"}</Text>
+        <TouchableOpacity style={[styles.input, { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface }]} onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
+          <Ionicons name="calendar" size={20} color={colors.primary} />
+          <Text style={[styles.dateText, { color: colors.text }, !expiryDate && { color: colors.textMuted }]}>{expiryDate || "Select date (YYYY-MM-DD)"}</Text>
         </TouchableOpacity>
         {showDatePicker && <DateTimePicker value={expiryDate ? new Date(expiryDate) : new Date()} mode="date" display="default" onChange={onDateChange} />}
 
         <Text style={[styles.label, { color: colors.text }]}>Notes (optional)</Text>
-        <TextInput style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text, height: 80, textAlignVertical: 'top' }]} multiline placeholder="Add any additional info..." placeholderTextColor={colors.textMuted} value={description} onChangeText={setDescription} />
+        <TextInput style={[styles.input, { backgroundColor: colors.surface, color: colors.text, height: 100, textAlignVertical: 'top' }]} multiline placeholder="Add any additional information..." placeholderTextColor={colors.textMuted} value={description} onChangeText={setDescription} />
 
         <Text style={[styles.label, { color: colors.text }]}>Upload Image</Text>
-        <TouchableOpacity style={[styles.imagePicker, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={pickImage}>
+        <TouchableOpacity style={[styles.imagePicker, { backgroundColor: colors.surface, borderColor: 'rgba(79, 124, 255, 0.3)' }]} onPress={pickImage} activeOpacity={0.7}>
           {image ? <Image source={{ uri: image.uri }} style={styles.previewImage} /> : (
             <>
-              <Ionicons name="camera-outline" size={32} color={colors.textMuted} />
-              <Text style={[styles.imagePickerText, { color: colors.textMuted }]}>Add Photo</Text>
+              <Ionicons name="camera" size={32} color={colors.primary} />
+              <Text style={[styles.imagePickerText, { color: colors.primary }]}>Tap to add photo</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>JPG, PNG up to 10MB</Text>
             </>
           )}
         </TouchableOpacity>
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={save}>
-          <Text style={[styles.saveButtonText, { color: '#FFF' }]}>SAVE</Text>
+      <View style={[styles.footer, { backgroundColor: colors.background }]}>
+        <TouchableOpacity style={styles.saveButton} onPress={save} activeOpacity={0.8}>
+          <LinearGradient colors={["#3A5FCD", colors.primary]} style={styles.saveButtonGradient} start={{x:0, y:0}} end={{x:1, y:0}}>
+            <Text style={styles.saveButtonText}>SAVE DOCUMENT</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -163,18 +178,56 @@ export default function AddDocumentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 40 },
-  label: { fontSize: 16, fontWeight: '600', marginBottom: 8, marginTop: 16 },
-  pickerRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1, marginRight: 10 },
-  chipText: { fontWeight: '500' },
-  datePickerBtn: { borderWidth: 1, borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center' },
-  dateText: { fontSize: 16, marginLeft: 10 },
-  input: { borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 16 },
-  imagePicker: { height: 120, borderWidth: 1, borderStyle: 'dashed', borderRadius: 12, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
-  imagePickerText: { marginTop: 8, fontWeight: '500' },
+  content: { padding: 20, paddingBottom: 40 },
+  label: { fontSize: 14, fontWeight: '700', marginBottom: 12, marginTop: 24, letterSpacing: 0.5 },
+  pickerRow: { flexDirection: 'row', marginBottom: 8, paddingBottom: 4 },
+  chipWrapper: { marginRight: 10, marginBottom: 4 },
+  chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 24 },
+  chipText: { fontWeight: '600', fontSize: 14 },
+  input: { 
+    borderRadius: 16, 
+    padding: 16, 
+    fontSize: 15, 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  dateText: { fontSize: 15, marginLeft: 12, fontWeight: '500' },
+  imagePicker: { 
+    height: 140, 
+    borderWidth: 1.5, 
+    borderStyle: 'dashed', 
+    borderRadius: 16, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    overflow: 'hidden' 
+  },
+  imagePickerText: { marginTop: 10, fontWeight: '700', fontSize: 15 },
   previewImage: { width: '100%', height: '100%' },
-  footer: { padding: 16, borderTopWidth: 1 },
-  saveButton: { padding: 16, borderRadius: 12, alignItems: 'center' },
-  saveButtonText: { fontWeight: 'bold', fontSize: 16 },
+  footer: { 
+    padding: 20, 
+    paddingBottom: 30,
+  },
+  saveButton: { 
+    borderRadius: 16, 
+    overflow: 'hidden',
+    shadowColor: "#4F7CFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  saveButtonGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonText: { 
+    fontWeight: '800', 
+    fontSize: 15, 
+    letterSpacing: 1,
+    color: '#FFF'
+  },
 });

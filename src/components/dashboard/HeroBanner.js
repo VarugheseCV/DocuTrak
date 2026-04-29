@@ -6,33 +6,41 @@ import { useTheme } from '../../context/AppContext';
 export default function HeroBanner({ totalUrgent, nextExpiry, alertDays, expiredCount, expiringSoonCount }) {
   const { colors, isDark } = useTheme();
 
-  let bannerColors = isDark ? ["#103520", "#051A0F"] : ["#E1FFE8", "#B3FFC5"];
-  let bannerIcon = "shield-checkmark";
-  let bannerIconTint = colors.success || "#34C759";
+  // "Soft depth minimalism" gradients without borders
+  let bannerColors = isDark ? ["#1A2235", colors.primary] : ["#E8F0FE", "#AECBFA"];
+  let bannerIcon = "checkmark-circle";
+  let bannerIconTint = "#FFFFFF";
+  let titleText = "All Clear";
+  
   if (expiredCount > 0) {
-    bannerColors = isDark ? ["#4A1A1A", "#280A0A"] : ["#FFE1E1", "#FFB3B3"];
+    bannerColors = isDark ? ["#3A1616", colors.danger] : ["#FFE1E1", "#FF9999"];
     bannerIcon = "alert-circle";
-    bannerIconTint = colors.danger;
+    titleText = `${totalUrgent} Action Required`;
   } else if (expiringSoonCount > 0) {
-    bannerColors = isDark ? ["#4A3010", "#281A05"] : ["#FFF0E1", "#FFD7B3"];
+    bannerColors = isDark ? ["#3A2810", colors.warning] : ["#FFF0E1", "#FFCC99"];
     bannerIcon = "warning";
-    bannerIconTint = colors.accent;
+    titleText = `${totalUrgent} Action Required`;
   }
 
   return (
-    <LinearGradient colors={bannerColors} style={[styles.heroBanner, { borderColor: colors.borderHighlight }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-      <Ionicons name={bannerIcon} size={180} color={isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} style={styles.heroBgIcon} />
+    <LinearGradient 
+      colors={bannerColors} 
+      style={styles.heroBanner} 
+      start={{ x: 0, y: 0 }} 
+      end={{ x: 1, y: 1 }}
+    >
+      <Ionicons name={bannerIcon} size={200} color={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} style={styles.heroBgIcon} />
       <View style={styles.heroTextContainer}>
         <View style={styles.heroTopRow}>
-          <Ionicons name={bannerIcon} size={24} color={bannerIconTint} />
-          <Text style={[styles.heroTitle, { color: colors.text }]}>
-            {totalUrgent > 0 ? `${totalUrgent} Action Required` : "All Clear"}
+          <Ionicons name={bannerIcon} size={22} color={bannerIconTint} />
+          <Text style={styles.heroTitle}>
+            {titleText}
           </Text>
         </View>
-        <Text style={[styles.heroSub, { color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)' }]}>
+        <Text style={styles.heroSub}>
           {nextExpiry
             ? `${nextExpiry.documentType?.name || 'Document'} for ${nextExpiry.entity?.name || 'Entity'} is ${nextExpiry.daysRemaining < 0 ? 'expired' : 'expiring soon'}.`
-            : `No documents expiring within ${alertDays} days.`}
+            : `No documents expiring within\n${alertDays} day${alertDays === 1 ? '' : 's'}.`}
         </Text>
       </View>
     </LinearGradient>
@@ -40,10 +48,20 @@ export default function HeroBanner({ totalUrgent, nextExpiry, alertDays, expired
 }
 
 const styles = StyleSheet.create({
-  heroBanner: { borderRadius: 24, padding: 24, marginBottom: 24, overflow: 'hidden', borderWidth: 1 },
-  heroBgIcon: { position: 'absolute', right: -40, top: -20, transform: [{ rotate: '-15deg' }] },
+  heroBanner: { 
+    borderRadius: 20, 
+    padding: 20, 
+    marginBottom: 24, 
+    overflow: 'hidden',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4, // subtle elevation instead of border
+  },
+  heroBgIcon: { position: 'absolute', right: -30, top: 0, transform: [{ rotate: '-10deg' }] },
   heroTextContainer: { zIndex: 2 },
   heroTopRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  heroTitle: { fontSize: 22, fontWeight: '900', marginLeft: 10 },
-  heroSub: { fontSize: 14, lineHeight: 22, fontWeight: '500' },
+  heroTitle: { fontSize: 20, fontWeight: '700', marginLeft: 8, color: '#FFFFFF' },
+  heroSub: { fontSize: 13, lineHeight: 20, fontWeight: '500', color: 'rgba(255,255,255,0.8)' },
 });

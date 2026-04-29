@@ -31,7 +31,7 @@ function AnimatedEntityCard({ entity, index, colors, state, navigate, renderRigh
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
-        <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
+        <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surface }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
           <StatusDot color={statusColor} />
           <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
             <Ionicons name={iconName} size={24} color={colors.primary} />
@@ -121,16 +121,21 @@ export default function EntitiesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 15 },
-  title: { fontSize: 28, fontWeight: '900' },
-  content: { padding: 20, paddingBottom: 40 },
+  title: { fontSize: 28, fontWeight: '800' },
+  content: { padding: 16, paddingBottom: 40 },
   listItem: {
     flexDirection: 'row', alignItems: 'center',
-    padding: 16, borderRadius: 20, marginBottom: 12, borderWidth: 1,
+    padding: 14, borderRadius: 16, marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  iconBox: { width: 48, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   itemText: { flex: 1, marginRight: 10 },
-  itemName: { fontSize: 17, fontWeight: '800' },
-  itemSub: { fontSize: 13, marginTop: 4, fontWeight: '500' },
-  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
-  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
+  itemName: { fontSize: 16, fontWeight: '700' },
+  itemSub: { fontSize: 13, marginTop: 2, fontWeight: '500' },
+  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
+  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
 });

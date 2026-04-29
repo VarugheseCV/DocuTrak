@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 import { createId } from '../domain/documents';
@@ -58,13 +59,32 @@ export default function AddEntityScreen() {
     navigate(ROUTES.ENTITIES);
   }
 
+  const renderChip = (id, name, isSelected, onPress) => {
+    if (isSelected) {
+      return (
+        <TouchableOpacity key={id} onPress={onPress} activeOpacity={0.8} style={styles.chipWrapper}>
+          <LinearGradient colors={["#3A5FCD", colors.primary]} style={[styles.chip, { shadowColor: colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]} start={{x:0, y:0}} end={{x:1, y:1}}>
+            <Text style={[styles.chipText, { color: '#FFF', fontWeight: '700' }]}>{name}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity key={id} onPress={onPress} activeOpacity={0.6} style={styles.chipWrapper}>
+        <View style={[styles.chip, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.chipText, { color: colors.textMuted }]}>{name}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScreenHeader title={editEntityId ? "Edit Entity" : "Add Entity"} onBack={() => navigate(ROUTES.ENTITIES)} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[styles.label, { color: colors.text }]}>Entity Name</Text>
-        <TextInput style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]} placeholder="e.g. John Doe, Tesla Model 3..." placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
+        <TextInput style={[styles.input, { backgroundColor: colors.surface, color: colors.text }]} placeholder="e.g. John Doe, Tesla Model 3..." placeholderTextColor={colors.textMuted} value={name} onChangeText={setName} />
 
         <View style={styles.typeHeader}>
           <Text style={[styles.label, { color: colors.text }]}>Entity Type</Text>
@@ -74,21 +94,19 @@ export default function AddEntityScreen() {
         </View>
 
         {isCreatingType ? (
-          <TextInput style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]} placeholder="e.g. Gadget, Pet..." placeholderTextColor={colors.textMuted} value={newTypeName} onChangeText={setNewTypeName} />
+          <TextInput style={[styles.input, { backgroundColor: colors.surface, color: colors.text }]} placeholder="e.g. Gadget, Pet..." placeholderTextColor={colors.textMuted} value={newTypeName} onChangeText={setNewTypeName} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-            {state.entityTypes.filter(t => t.active).map(t => (
-              <TouchableOpacity key={t.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, entityTypeId === t.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setEntityTypeId(t.id)}>
-                <Text style={[styles.chipText, { color: colors.text }, entityTypeId === t.id && { fontWeight: 'bold' }]}>{t.name}</Text>
-              </TouchableOpacity>
-            ))}
+            {state.entityTypes.filter(t => t.active).map(t => renderChip(t.id, t.name, entityTypeId === t.id, () => setEntityTypeId(t.id)))}
           </ScrollView>
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={save}>
-          <Text style={[styles.saveButtonText, { color: '#FFF' }]}>SAVE ENTITY</Text>
+      <View style={[styles.footer, { backgroundColor: colors.background }]}>
+        <TouchableOpacity style={styles.saveButton} onPress={save} activeOpacity={0.8}>
+          <LinearGradient colors={["#3A5FCD", colors.primary]} style={styles.saveButtonGradient} start={{x:0, y:0}} end={{x:1, y:0}}>
+            <Text style={styles.saveButtonText}>SAVE ENTITY</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -98,14 +116,45 @@ export default function AddEntityScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  label: { fontSize: 15, fontWeight: '700', marginBottom: 8, marginTop: 16 },
+  label: { fontSize: 14, fontWeight: '700', marginBottom: 12, marginTop: 24, letterSpacing: 0.5 },
   typeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  toggleText: { fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
-  pickerRow: { flexDirection: 'row', marginBottom: 8 },
-  chip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, borderWidth: 1, marginRight: 10 },
-  chipText: { fontWeight: '500' },
-  input: { borderWidth: 1, borderRadius: 16, padding: 16, fontSize: 16 },
-  footer: { padding: 20, paddingBottom: 30 },
-  saveButton: { padding: 16, borderRadius: 16, alignItems: 'center' },
-  saveButtonText: { fontWeight: '900', fontSize: 16 },
+  toggleText: { fontWeight: '700', marginTop: 24, marginBottom: 12, fontSize: 13 },
+  pickerRow: { flexDirection: 'row', marginBottom: 8, paddingBottom: 4 },
+  chipWrapper: { marginRight: 10, marginBottom: 4 },
+  chip: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 24 },
+  chipText: { fontWeight: '600', fontSize: 14 },
+  input: { 
+    borderRadius: 16, 
+    padding: 16, 
+    fontSize: 15, 
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  footer: { 
+    padding: 20, 
+    paddingBottom: 30,
+  },
+  saveButton: { 
+    borderRadius: 16, 
+    overflow: 'hidden',
+    shadowColor: "#4F7CFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  saveButtonGradient: {
+    paddingVertical: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonText: { 
+    fontWeight: '800', 
+    fontSize: 15, 
+    letterSpacing: 1,
+    color: '#FFF'
+  },
 });
