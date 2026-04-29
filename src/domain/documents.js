@@ -39,12 +39,28 @@ function findDuplicateDocumentRecord(records, candidate, ignoreId) {
 
 function buildExpiryReport(state, now = new Date()) {
   const alertDays = Number(state.profile?.alertDays || 30);
-  return state.documentRecords
-    .filter((record) => isExpiringWithin(record, alertDays, now))
+
+  const expiringRecords = state.documentRecords.filter((record) => isExpiringWithin(record, alertDays, now));
+
+  if (expiringRecords.length === 0) {
+    return [];
+  }
+
+  const entityMap = new Map();
+  for (const entity of state.entities || []) {
+    entityMap.set(entity.id, entity);
+  }
+
+  const documentTypeMap = new Map();
+  for (const type of state.documentTypes || []) {
+    documentTypeMap.set(type.id, type);
+  }
+
+  return expiringRecords
     .map((record) => ({
       ...record,
-      entity: state.entities.find((entity) => entity.id === record.entityId),
-      documentType: state.documentTypes.find((type) => type.id === record.documentTypeId),
+      entity: entityMap.get(record.entityId),
+      documentType: documentTypeMap.get(record.documentTypeId),
       daysRemaining: daysUntil(record.expiryDate, now)
     }))
     .sort((a, b) => a.daysRemaining - b.daysRemaining);

@@ -33,7 +33,7 @@ export async function scheduleExpiryNotifications(state) {
   await Notifications.cancelAllScheduledNotificationsAsync();
   const report = buildExpiryReport(state);
   const alertDays = Number(state.profile.alertDays || 30);
-  let scheduled = 0;
+  const promises = [];
 
   for (const item of report) {
     const expiryDate = new Date(`${item.expiryDate}T09:00:00`);
@@ -46,7 +46,7 @@ export async function scheduleExpiryNotifications(state) {
       continue;
     }
 
-    await Notifications.scheduleNotificationAsync({
+    promises.push(Notifications.scheduleNotificationAsync({
       content: {
         title: "Document expiry reminder",
         body: `${item.documentType?.name || "Document"} for ${item.entity?.name || "entity"} expires on ${item.expiryDate}.`,
@@ -55,8 +55,9 @@ export async function scheduleExpiryNotifications(state) {
         }
       },
       trigger: { type: "date", date: triggerDate, channelId: "expiry-alerts" }
-    });
-    scheduled++;
+    }));
   }
-  return scheduled;
+
+  await Promise.all(promises);
+  return promises.length;
 }
