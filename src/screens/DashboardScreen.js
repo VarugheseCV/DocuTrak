@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { performDocumentDeletion } from '../services/documentService';
 import { getDashboardSummary } from '../domain/dashboard';
 import { useAppState } from '../context/AppContext';
@@ -17,6 +18,7 @@ export default function DashboardScreen() {
   const { sections } = summary;
 
   const handleDeleteRecord = useCallback((recordId) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -29,10 +31,10 @@ export default function DashboardScreen() {
     ]);
   }, [state, commit]);
 
-  const renderItem = useCallback(({ item }) => {
+  const renderItem = useCallback(({ item, index }) => {
     if (item.type === 'sectionHeader') return <SectionHeader title={item.title} />;
     if (item.type === 'empty') return <EmptyState icon="documents-outline" title="No documents tracked" subtitle="Tap the + button to add your first document." />;
-    return <DocumentCard item={item} onDelete={handleDeleteRecord} />;
+    return <DocumentCard item={item} index={index} onDelete={handleDeleteRecord} />;
   }, [handleDeleteRecord]);
 
   const ListHeader = useCallback(() => (

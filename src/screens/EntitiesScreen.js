@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import * as Haptics from 'expo-haptics';
 import { useAppState, useAppNavigation } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 import { getEntityIcon, getEntitySummary, getEntityStatusColor } from '../domain/entities';
@@ -10,6 +10,48 @@ import SearchBar from '../components/SearchBar';
 import EmptyState from '../components/EmptyState';
 import ScreenHeader from '../components/ScreenHeader';
 import StatusDot from '../components/StatusDot';
+
+function AnimatedEntityCard({ entity, index, colors, state, navigate, renderRightActions }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    const delay = Math.min(index * 50, 400);
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, delay, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 300, delay, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const typeName = state.entityTypes.find(t => t.id === entity.entityTypeId)?.name || "Entity";
+  const iconName = getEntityIcon(typeName);
+  const summary = getEntitySummary(entity.id, state);
+  const statusColor = getEntityStatusColor(summary, colors);
+
+  return (
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+      <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
+        <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
+          <StatusDot color={statusColor} />
+          <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name={iconName} size={24} color={colors.primary} />
+          </View>
+          <View style={styles.itemText}>
+            <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
+            <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
+              {typeName} • {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
+              {(summary.expiring > 0 || summary.expired > 0) ? ' • ' : ''}
+              {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
+              {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
+              {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </TouchableOpacity>
+      </Swipeable>
+    </Animated.View>
+  );
+}
 
 export default function EntitiesScreen() {
   const { state, commit, colors } = useAppState();
@@ -21,6 +63,7 @@ export default function EntitiesScreen() {
   );
 
   function handleDeleteEntity(entityId) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const activeDocs = state.documentRecords.filter(d => d.entityId === entityId && d.status === "Active");
     if (activeDocs.length > 0) {
       Alert.alert("Cannot Delete", `This entity has ${activeDocs.length} active document(s). Please remove them first.`);
@@ -46,36 +89,16 @@ export default function EntitiesScreen() {
     </View>
   ), [state, colors]);
 
-  const renderEntity = useCallback(({ item: entity }) => {
-    const typeName = state.entityTypes.find(t => t.id === entity.entityTypeId)?.name || "Entity";
-    const iconName = getEntityIcon(typeName);
-    const summary = getEntitySummary(entity.id, state);
-    const statusColor = getEntityStatusColor(summary, colors);
-
-    return (
-      <Animated.View entering={FadeInDown.duration(300).delay(100)} exiting={FadeOut.duration(200)}>
-        <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
-          <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
-            <StatusDot color={statusColor} />
-            <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
-              <Ionicons name={iconName} size={24} color={colors.primary} />
-            </View>
-            <View style={styles.itemText}>
-              <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
-              <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
-                {typeName} • {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
-                {(summary.expiring > 0 || summary.expired > 0) ? ' • ' : ''}
-                {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
-                {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
-                {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-          </TouchableOpacity>
-        </Swipeable>
-      </Animated.View>
-    );
-  }, [state, colors]);
+  const renderEntity = useCallback(({ item: entity, index }) => (
+    <AnimatedEntityCard
+      entity={entity}
+      index={index}
+      colors={colors}
+      state={state}
+      navigate={navigate}
+      renderRightActions={renderRightActions}
+    />
+  ), [state, colors]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

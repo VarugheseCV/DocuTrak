@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import Animated, { FadeIn, SlideInRight } from 'react-native-reanimated';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useData, useTheme, useAppNavigation } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -34,6 +33,17 @@ export default function OnboardingScreen() {
   const { state, commit } = useData();
   const navigate = useAppNavigation();
   const [step, setStep] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(50);
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 50, friction: 8 }),
+    ]).start();
+  }, [step]);
 
   async function handleNext() {
     if (step < SLIDES.length - 1) {
@@ -54,11 +64,11 @@ export default function OnboardingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Animated.View entering={FadeIn.duration(600)} style={styles.topSection}>
+      <Animated.View style={[styles.topSection, { opacity: fadeAnim }]}>
         <Text style={[styles.brand, { color: colors.primary }]}>DOCUTRAK</Text>
       </Animated.View>
 
-      <Animated.View key={slide.id} entering={SlideInRight.duration(400).springify()} style={styles.content}>
+      <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
         <View style={[styles.iconBox, { backgroundColor: `${slide.color}20` }]}>
           <Ionicons name={slide.icon} size={80} color={slide.color} />
         </View>

@@ -12,6 +12,7 @@ import { lightColors, darkColors } from "./src/theme/theme";
 import { AppProvider } from "./src/context/AppContext";
 import RootStack from "./src/navigation/RootStack";
 import { scheduleExpiryNotifications } from "./src/services/notifications";
+import SkeletonLoader from "./src/components/SkeletonLoader";
 
 export default function App() {
   const [state, setState] = useState(createInitialState());
@@ -55,17 +56,22 @@ export default function App() {
   }, []);
 
   if (loading || !isUnlocked) {
+    if (loading) {
+      return (
+        <View style={{ flex: 1 }}>
+          <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+          <SkeletonLoader colors={colors} />
+        </View>
+      );
+    }
+
     return (
       <View style={[styles.lockScreen, { backgroundColor: colors.background }]}>
-        {!loading && !isUnlocked ? (
-          <TouchableOpacity onPress={() => unlockApp(state)} style={{ alignItems: 'center' }}>
-            <Ionicons name="lock-closed" size={64} color={colors.primary} />
-            <Text style={[styles.lockTitle, { color: colors.text }]}>DocuTrak is Locked</Text>
-            <Text style={[styles.lockSub, { color: colors.textMuted }]}>Tap to unlock</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={[styles.lockSub, { color: colors.textMuted }]}>Loading...</Text>
-        )}
+        <TouchableOpacity onPress={() => unlockApp(state)} style={{ alignItems: 'center' }}>
+          <Ionicons name="lock-closed" size={64} color={colors.primary} />
+          <Text style={[styles.lockTitle, { color: colors.text }]}>DocuTrak is Locked</Text>
+          <Text style={[styles.lockSub, { color: colors.textMuted }]}>Tap to unlock</Text>
+        </TouchableOpacity>
       </View>
     );
   }

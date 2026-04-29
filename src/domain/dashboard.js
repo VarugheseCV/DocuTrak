@@ -23,14 +23,36 @@ export function getDashboardSummary(state, alertDays = 30) {
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
   const sections = [];
+  
   if (exp.length > 0) {
-    sections.push({ type: 'sectionHeader', title: 'Expired Documents', key: 'h-expired' });
+    sections.push({ type: 'sectionHeader', title: 'Expired', key: 'h-expired' });
     exp.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
   }
+
   if (soon.length > 0) {
-    sections.push({ type: 'sectionHeader', title: 'Expiring Soon', key: 'h-expiring' });
-    soon.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    const today = soon.filter(r => r.daysRemaining === 0);
+    const thisWeek = soon.filter(r => r.daysRemaining > 0 && r.daysRemaining <= 7);
+    const thisMonth = soon.filter(r => r.daysRemaining > 7 && r.daysRemaining <= 30);
+    const later = soon.filter(r => r.daysRemaining > 30);
+
+    if (today.length > 0) {
+      sections.push({ type: 'sectionHeader', title: 'Expiring Today', key: 'h-today' });
+      today.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    }
+    if (thisWeek.length > 0) {
+      sections.push({ type: 'sectionHeader', title: 'Expiring This Week', key: 'h-thisweek' });
+      thisWeek.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    }
+    if (thisMonth.length > 0) {
+      sections.push({ type: 'sectionHeader', title: 'Expiring This Month', key: 'h-thismonth' });
+      thisMonth.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    }
+    if (later.length > 0) {
+      sections.push({ type: 'sectionHeader', title: 'Expiring Later', key: 'h-later' });
+      later.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    }
   }
+
   if (sections.length === 0) {
     sections.push({ type: 'empty', key: 'empty' });
   }
