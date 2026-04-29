@@ -16,28 +16,28 @@ export default function QuickActions() {
   return (
     <View style={styles.quickActionsRow}>
       <TouchableOpacity style={styles.quickAction} onPress={() => handleAction(ROUTES.ADD_DOCUMENT)}>
-        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface }]}>
+        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="document-text" size={20} color={colors.primary} />
         </View>
         <Text style={[styles.quickActionLabel, { color: colors.text }]}>Add Doc</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.quickAction} onPress={() => handleAction(ROUTES.ADD_ENTITY)}>
-        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface }]}>
+        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="person-add" size={20} color={colors.success} />
         </View>
         <Text style={[styles.quickActionLabel, { color: colors.text }]}>Add Entity</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.quickAction} onPress={() => handleAction(ROUTES.ENTITIES)}>
-        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface }]}>
+        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="grid" size={20} color={colors.primary} />
         </View>
         <Text style={[styles.quickActionLabel, { color: colors.text }]}>All Entities</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.quickAction} onPress={() => handleAction(ROUTES.SETTINGS)}>
-        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface }]}>
+        <View style={[styles.quickActionIcon, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="settings" size={20} color={colors.textMuted} />
         </View>
         <Text style={[styles.quickActionLabel, { color: colors.text }]}>Settings</Text>
@@ -63,10 +63,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
     marginBottom: 10,
-    // Soft depth without borders
+    borderWidth: 1,
+    borderColor: 'transparent',
+    // Soft depth
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
   },

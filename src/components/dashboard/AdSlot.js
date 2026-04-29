@@ -7,8 +7,10 @@ export default function AdSlot() {
 
   return (
     <View style={[styles.adSlot, { backgroundColor: colors.adBg, borderColor: colors.adBorder }]}>
-      <Ionicons name="megaphone" size={18} color={colors.accent} />
-      <Text style={[styles.adText, { color: colors.accent }]}>Dashboard advertisement slot</Text>
+      <View style={[styles.iconBg, { backgroundColor: colors.primaryLight }]}>
+        <Ionicons name="megaphone" size={16} color={colors.primary} />
+      </View>
+      <Text style={[styles.adText, { color: colors.textMuted }]}>Sponsored • Ad space available</Text>
     </View>
   );
 }
@@ -16,8 +18,9 @@ export default function AdSlot() {
 const styles = StyleSheet.create({
   adSlot: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderStyle: 'dashed', borderRadius: 16,
-    padding: 16, marginBottom: 30, gap: 12,
+    borderWidth: 1, borderRadius: 14,
+    padding: 14, marginBottom: 28, gap: 10,
   },
-  adText: { fontWeight: '800', fontSize: 12, flex: 1, textTransform: 'uppercase', letterSpacing: 1 },
+  iconBg: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  adText: { fontWeight: '600', fontSize: 13, flex: 1 },
 });

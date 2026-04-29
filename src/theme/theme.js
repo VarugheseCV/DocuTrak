@@ -21,45 +21,53 @@ export const darkColors = {
   // Text
   text: "#FFFFFF",
   textMuted: "#A0A5B5",           // Cooler grey
+  textSecondary: "#6E7489",       // Even lighter for hints
   
   // Borders (Minimal)
-  border: "rgba(255, 255, 255, 0.04)",
-  borderHighlight: "rgba(255, 255, 255, 0.08)",
+  border: "rgba(255, 255, 255, 0.06)",
+  borderHighlight: "rgba(255, 255, 255, 0.10)",
+  
+  // Shadows
+  shadowColor: "#000000",
   
   // Ad Banner
-  adBg: "rgba(245, 166, 35, 0.05)",
-  adBorder: "rgba(245, 166, 35, 0.15)",
+  adBg: "rgba(79, 124, 255, 0.06)",
+  adBorder: "rgba(79, 124, 255, 0.15)",
 };
 
 export const lightColors = {
   // Brand
-  primary: "#4F7CFF",     // Electric Indigo
-  accent: "#FF8C42",
-  
+  primary: "#3D6AE8",     // Deeper indigo for contrast on white
+  accent: "#E87B30",      // Richer orange
+
   // Status
-  success: "#34C759",
-  warning: "#F5A623",
-  danger: "#FF3B30",
+  success: "#2DA44E",
+  warning: "#D4850C",
+  danger: "#CF222E",
   
   // Translucents for backgrounds
-  primaryLight: "rgba(79, 124, 255, 0.1)",
-  warningLight: "rgba(245, 166, 35, 0.1)",
-  dangerLight: "rgba(255, 59, 48, 0.1)",
+  primaryLight: "rgba(61, 106, 232, 0.08)",
+  warningLight: "rgba(212, 133, 12, 0.08)",
+  dangerLight: "rgba(207, 34, 46, 0.08)",
   
-  // Layout (Clean Light)
-  background: "#F2F3F5",          // Very light cool grey
-  surface: "#FFFFFF",             // Pure white
-  surfaceElevated: "#E8E9EC",     // Slight elevation
+  // Layout (Clean Light — proper contrast hierarchy)
+  background: "#F0F1F3",          // Cool grey canvas
+  surface: "#FFFFFF",             // Pure white cards
+  surfaceElevated: "#FFFFFF",     // Also white (elevation via shadow, not color)
   
   // Text
-  text: "#1A1C20",
-  textMuted: "#83899B",
+  text: "#1A1C22",               // Near-black for readability
+  textMuted: "#6B7082",          // Medium grey
+  textSecondary: "#9CA0AE",      // Light hints
   
-  // Borders
-  border: "rgba(0, 0, 0, 0.06)",
-  borderHighlight: "rgba(0, 0, 0, 0.12)",
+  // Borders — visible enough to define card edges on light bg
+  border: "rgba(0, 0, 0, 0.08)",
+  borderHighlight: "rgba(0, 0, 0, 0.14)",
+  
+  // Shadows
+  shadowColor: "rgba(0, 0, 0, 0.12)",
   
   // Ad Banner
-  adBg: "rgba(245, 166, 35, 0.05)",
-  adBorder: "rgba(245, 166, 35, 0.15)",
+  adBg: "rgba(61, 106, 232, 0.04)",
+  adBorder: "rgba(61, 106, 232, 0.12)",
 };

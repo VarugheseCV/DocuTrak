@@ -7,7 +7,7 @@ export default function StatsRow({ totalEntities, expiringSoonCount, expiredCoun
 
   return (
     <View style={styles.statsRow}>
-      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.statHeader}>
           <Ionicons name="people" size={20} color={colors.primary} />
           <Text style={[styles.statValue, { color: colors.text }]}>{totalEntities}</Text>
@@ -15,7 +15,7 @@ export default function StatsRow({ totalEntities, expiringSoonCount, expiredCoun
         <Text style={[styles.statLabel, { color: colors.textMuted }]}>Entities</Text>
       </View>
       
-      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.statHeader}>
           <Ionicons name="time" size={20} color={colors.warning} />
           <Text style={[styles.statValue, { color: colors.text }]}>{expiringSoonCount}</Text>
@@ -23,7 +23,7 @@ export default function StatsRow({ totalEntities, expiringSoonCount, expiredCoun
         <Text style={[styles.statLabel, { color: colors.textMuted }]}>Expiring</Text>
       </View>
       
-      <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.statHeader}>
           <Ionicons name="alert-circle" size={20} color={colors.danger} />
           <Text style={[styles.statValue, { color: colors.text }]}>{expiredCount}</Text>
@@ -45,10 +45,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12, 
     borderRadius: 16,
-    // Soft depth without borders
+    borderWidth: 1,
+    borderColor: 'transparent', // overridden inline
+    // Soft depth
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
