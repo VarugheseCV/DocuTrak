@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, Modal, TextInput } from 'react-native';
-import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useAppState, useAppNavigation } from '../context/AppContext';
@@ -93,19 +92,16 @@ export default function SettingsScreen() {
                 <Ionicons name="notifications" size={24} color={colors.primary} />
                 <Text style={[styles.itemName, { color: colors.text }]}>Alert Days</Text>
               </View>
-              <Text style={[styles.alertDaysValue, { color: colors.text }]}>{profile.alertDays || 30}</Text>
+              <View style={styles.alertDaysControls}>
+                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(-5)}>
+                  <Ionicons name="remove" size={20} color={colors.text} />
+                </TouchableOpacity>
+                <Text style={[styles.alertDaysValue, { color: colors.text }]}>{profile.alertDays || 30}</Text>
+                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(5)}>
+                  <Ionicons name="add" size={20} color={colors.text} />
+                </TouchableOpacity>
+              </View>
             </View>
-            <Slider
-              style={{ width: '100%', height: 40, marginTop: 10 }}
-              minimumValue={1}
-              maximumValue={365}
-              step={1}
-              value={Number(profile.alertDays || 30)}
-              onValueChange={(val) => commit({ ...state, profile: { ...profile, alertDays: val } })}
-              minimumTrackTintColor={colors.primary}
-              maximumTrackTintColor={colors.border}
-              thumbTintColor={colors.primary}
-            />
             <Text style={[styles.itemSub, { color: colors.textMuted }]}>You will be notified {profile.alertDays || 30} days before a document expires.</Text>
           </View>
 

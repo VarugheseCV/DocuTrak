@@ -9,8 +9,6 @@ import { ROUTES } from '../navigation/routes';
 import EmptyState from '../components/EmptyState';
 
 export default function DashboardScreen() {
-  const [showAllExpired, setShowAllExpired] = useState(false);
-  const [showAllExpiring, setShowAllExpiring] = useState(false);
   const { state, commit, colors, isDark, toggleTheme } = useAppState();
   const navigate = useAppNavigation();
   const alertDays = Number(state.profile?.alertDays || 30);
@@ -208,13 +206,6 @@ export default function DashboardScreen() {
       case 'doc':
         return renderDocItem({ item });
 
-      case 'toggleList':
-        return (
-          <TouchableOpacity style={styles.toggleListBtn} onPress={item.onPress} accessibilityRole="button">
-            <Text style={[styles.toggleListText, { color: colors.primary }]}>{item.title}</Text>
-          </TouchableOpacity>
-        );
-
       case 'empty':
         return <EmptyState icon="documents-outline" title="No documents tracked" subtitle="Tap the + button to add your first document." />;
 
@@ -227,19 +218,11 @@ export default function DashboardScreen() {
   const sections = [];
   if (expired.length > 0) {
     sections.push({ type: 'sectionHeader', title: 'Expired Documents', key: 'h-expired' });
-    const displayedExpired = showAllExpired ? expired : expired.slice(0, 5);
-    displayedExpired.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    if (expired.length > 5) {
-      sections.push({ type: 'toggleList', title: showAllExpired ? 'Show Less' : `Show All (${expired.length})`, onPress: () => setShowAllExpired(!showAllExpired), key: 'toggle-expired' });
-    }
+    expired.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
   }
   if (expiringSoon.length > 0) {
     sections.push({ type: 'sectionHeader', title: 'Expiring Soon', key: 'h-expiring' });
-    const displayedExpiring = showAllExpiring ? expiringSoon : expiringSoon.slice(0, 5);
-    displayedExpiring.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    if (expiringSoon.length > 5) {
-      sections.push({ type: 'toggleList', title: showAllExpiring ? 'Show Less' : `Show All (${expiringSoon.length})`, onPress: () => setShowAllExpiring(!showAllExpiring), key: 'toggle-expiring' });
-    }
+    expiringSoon.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
   }
   if (sections.length === 0) {
     sections.push({ type: 'empty', key: 'empty' });
@@ -338,6 +321,4 @@ const styles = StyleSheet.create({
   // Swipe actions
   actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
   actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
-  toggleListBtn: { alignItems: 'center', paddingVertical: 12, marginBottom: 16 },
-  toggleListText: { fontWeight: 'bold', fontSize: 14, textTransform: 'uppercase' },
 });
