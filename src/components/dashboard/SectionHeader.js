@@ -1,8 +1,8 @@
 import { Text, StyleSheet } from 'react-native';
-import { useAppState } from '../../context/AppContext';
+import { useTheme } from '../../context/AppContext';
 
 export default function SectionHeader({ title }) {
-  const { colors } = useAppState();
+  const { colors } = useTheme();
 
   return <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{title}</Text>;
 }

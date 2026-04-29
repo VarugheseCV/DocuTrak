@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useAppState, useAppNavigation } from '../context/AppContext';
@@ -52,25 +53,27 @@ export default function EntitiesScreen() {
     const statusColor = getEntityStatusColor(summary, colors);
 
     return (
-      <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
-        <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
-          <StatusDot color={statusColor} />
-          <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
-            <Ionicons name={iconName} size={24} color={colors.primary} />
-          </View>
-          <View style={styles.itemText}>
-            <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
-            <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
-              {typeName} • {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
-              {(summary.expiring > 0 || summary.expired > 0) ? ' • ' : ''}
-              {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
-              {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
-              {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </TouchableOpacity>
-      </Swipeable>
+      <Animated.View entering={FadeInDown.duration(300).delay(100)} exiting={FadeOut.duration(200)}>
+        <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
+          <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
+            <StatusDot color={statusColor} />
+            <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={iconName} size={24} color={colors.primary} />
+            </View>
+            <View style={styles.itemText}>
+              <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
+              <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
+                {typeName} • {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
+                {(summary.expiring > 0 || summary.expired > 0) ? ' • ' : ''}
+                {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
+                {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
+                {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </Swipeable>
+      </Animated.View>
     );
   }, [state, colors]);
 

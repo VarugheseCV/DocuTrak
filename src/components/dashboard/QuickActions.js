@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppState, useAppNavigation } from '../../context/AppContext';
+import { useTheme, useAppNavigation } from '../../context/AppContext';
 import { ROUTES } from '../../navigation/routes';
 
 export default function QuickActions() {
-  const { colors } = useAppState();
+  const { colors } = useTheme();
   const navigate = useAppNavigation();
 
   return (

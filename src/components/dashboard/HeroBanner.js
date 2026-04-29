@@ -1,14 +1,14 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAppState } from '../../context/AppContext';
+import { useTheme } from '../../context/AppContext';
 
 export default function HeroBanner({ totalUrgent, nextExpiry, alertDays, expiredCount, expiringSoonCount }) {
-  const { colors, isDark } = useAppState();
+  const { colors, isDark } = useTheme();
 
-  let bannerColors = isDark ? ["#1A2A42", "#0A1128"] : ["#E1F0FF", "#B3D7FF"];
+  let bannerColors = isDark ? ["#103520", "#051A0F"] : ["#E1FFE8", "#B3FFC5"];
   let bannerIcon = "shield-checkmark";
-  let bannerIconTint = colors.primary;
+  let bannerIconTint = colors.success || "#34C759";
   if (expiredCount > 0) {
     bannerColors = isDark ? ["#4A1A1A", "#280A0A"] : ["#FFE1E1", "#FFB3B3"];
     bannerIcon = "alert-circle";

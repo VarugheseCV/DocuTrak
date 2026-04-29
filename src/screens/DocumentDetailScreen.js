@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { deleteDocumentImages } from '../services/documentService';
+import { performDocumentDeletion } from '../services/documentService';
 import { daysUntil } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -30,22 +30,14 @@ export default function DocumentDetailScreen() {
   const imageMap = useMemo(() => new Map(state.images.map(img => [img.id, img])), [state.images]);
   const images = useMemo(() => (record.imageIds || []).map(id => imageMap.get(id)).filter(Boolean), [record.imageIds, imageMap]);
 
-  async function cleanupImages() {
-    await deleteDocumentImages(record.imageIds, state.images);
-  }
-
   function deleteRecord() {
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive",
         onPress: async () => {
-          await cleanupImages();
-          commit({
-            ...state,
-            documentRecords: state.documentRecords.map(r => r.id === record.id ? { ...r, status: "In-Active" } : r),
-            images: state.images.filter(img => !(record.imageIds || []).includes(img.id)),
-          });
+          const nextState = await performDocumentDeletion(record.id, state);
+          commit(nextState);
           navigate(ROUTES.DASHBOARD);
         },
       },
@@ -64,20 +56,19 @@ export default function DocumentDetailScreen() {
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
-            <Text style={[styles.infoText, { color: colors.text }]}>Expiry: {record.expiryDate}</Text>
+            <Text style={[styles.infoText, { color: colors.text }]}>
+              {daysRem !== null
+                ? (isExpired 
+                  ? (daysRem === 0 ? `Expired today (${record.expiryDate})` : `Expired ${Math.abs(daysRem)} day${Math.abs(daysRem) === 1 ? '' : 's'} ago (${record.expiryDate})`)
+                  : (daysRem === 0 ? `Expires today (${record.expiryDate})` : `Expires in ${daysRem} day${daysRem === 1 ? '' : 's'} (${record.expiryDate})`)
+                  )
+                : `Expiry: ${record.expiryDate}`}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Ionicons name="ellipse" size={16} color={statusColor} style={{ marginLeft: 2 }} />
             <Text style={[styles.infoText, { color: statusColor, fontWeight: 'bold', marginLeft: 6 }]}>Status: {statusText}</Text>
           </View>
-          {daysRem !== null && (
-            <View style={styles.infoRow}>
-              <Ionicons name="time-outline" size={20} color={colors.textMuted} />
-              <Text style={[styles.infoText, { color: colors.text }]}>
-                {isExpired ? `Expired ${Math.abs(daysRem)} days ago` : `${daysRem} days remaining`}
-              </Text>
-            </View>
-          )}
         </View>
 
         {images.length > 0 && (

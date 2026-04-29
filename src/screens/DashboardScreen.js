@@ -1,14 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { deleteDocumentImages } from '../services/documentService';
-import { daysUntil } from '../domain/documents';
+import { performDocumentDeletion } from '../services/documentService';
+import { getDashboardSummary } from '../domain/dashboard';
 import { useAppState } from '../context/AppContext';
 import EmptyState from '../components/EmptyState';
-import HeroBanner from '../components/dashboard/HeroBanner';
-import StatsRow from '../components/dashboard/StatsRow';
-import QuickActions from '../components/dashboard/QuickActions';
-import AdSlot from '../components/dashboard/AdSlot';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import SectionHeader from '../components/dashboard/SectionHeader';
 import DocumentCard from '../components/dashboard/DocumentCard';
 
@@ -16,66 +13,22 @@ export default function DashboardScreen() {
   const { state, commit, colors, isDark, toggleTheme } = useAppState();
   const alertDays = Number(state.profile?.alertDays || 30);
 
-  // --- Derived state (memoized for performance) ---
-  const { activeRecords, expiringSoon, expired } = useMemo(() => {
-    // 1. Build maps for O(1) lookups
-    const entityMap = new Map(state.entities.map(e => [e.id, e]));
-    const typeMap = new Map(state.documentTypes.map(dt => [dt.id, dt]));
+  const summary = useMemo(() => getDashboardSummary(state, alertDays), [state.documentRecords, state.entities, state.documentTypes, alertDays]);
+  const { expired, expiringSoon } = summary;
 
-    // 2. Filter and map records using the maps
-    const active = state.documentRecords
-      .filter(r => r.status === "Active")
-      .map(r => ({
-        ...r,
-        entity: entityMap.get(r.entityId),
-        documentType: typeMap.get(r.documentTypeId),
-        daysRemaining: daysUntil(r.expiryDate),
-      }))
-      .filter(r => r.daysRemaining !== null);
-
-    // 3. Compute soon and expired
-    const soon = active
-      .filter(r => r.daysRemaining >= 0 && r.daysRemaining <= alertDays)
-      .sort((a, b) => a.daysRemaining - b.daysRemaining);
-
-    const exp = active
-      .filter(r => r.daysRemaining < 0)
-      .sort((a, b) => a.daysRemaining - b.daysRemaining);
-
-    return { activeRecords: active, expiringSoon: soon, expired: exp };
-  }, [state.documentRecords, state.entities, state.documentTypes, alertDays]);
-
-  const totalEntities = state.entities.filter(e => e.active).length;
-  const totalUrgent = expiringSoon.length + expired.length;
-  const nextExpiry = expiringSoon[0] || expired[0];
-
-  // --- Handlers ---
   function handleDeleteRecord(recordId) {
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive",
         onPress: async () => {
-          const record = state.documentRecords.find(r => r.id === recordId);
-          if (record && record.imageIds && record.imageIds.length > 0) {
-            await deleteDocumentImages(record.imageIds, state.images);
-            commit({
-              ...state,
-              documentRecords: state.documentRecords.map(r => r.id === recordId ? { ...r, status: "In-Active" } : r),
-              images: state.images.filter(img => !record.imageIds.includes(img.id)),
-            });
-          } else {
-            commit({
-              ...state,
-              documentRecords: state.documentRecords.map(r => r.id === recordId ? { ...r, status: "In-Active" } : r),
-            });
-          }
+          const nextState = await performDocumentDeletion(recordId, state);
+          commit(nextState);
         },
       },
     ]);
   }
 
-  // --- Render helpers ---
   const renderItem = useCallback(({ item }) => {
     if (item.type === 'sectionHeader') return <SectionHeader title={item.title} />;
     if (item.type === 'empty') return <EmptyState icon="documents-outline" title="No documents tracked" subtitle="Tap the + button to add your first document." />;
@@ -83,25 +36,9 @@ export default function DashboardScreen() {
   }, [handleDeleteRecord]);
 
   const ListHeader = useCallback(() => (
-    <>
-      <HeroBanner 
-        totalUrgent={totalUrgent} 
-        nextExpiry={nextExpiry} 
-        alertDays={alertDays} 
-        expiredCount={expired.length} 
-        expiringSoonCount={expiringSoon.length} 
-      />
-      <StatsRow 
-        totalEntities={totalEntities} 
-        expiringSoonCount={expiringSoon.length} 
-        expiredCount={expired.length} 
-      />
-      <QuickActions />
-      <AdSlot />
-    </>
-  ), [totalUrgent, nextExpiry, alertDays, expired.length, expiringSoon.length, totalEntities]);
+    <DashboardHeader summary={summary} alertDays={alertDays} />
+  ), [summary, alertDays]);
 
-  // --- Construct list sections ---
   const sections = [];
   if (expired.length > 0) {
     sections.push({ type: 'sectionHeader', title: 'Expired Documents', key: 'h-expired' });

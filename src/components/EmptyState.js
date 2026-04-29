@@ -1,16 +1,17 @@
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppState } from '../context/AppContext';
+import { useTheme } from '../context/AppContext';
 
 export default function EmptyState({ icon = "folder-open-outline", title, subtitle }) {
-  const { colors } = useAppState();
+  const { colors } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <Animated.View entering={FadeIn.duration(400).delay(200)} style={styles.container}>
       <Ionicons name={icon} size={64} color={colors.borderHighlight} />
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {subtitle && <Text style={[styles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text>}
-    </View>
+    </Animated.View>
   );
 }
 

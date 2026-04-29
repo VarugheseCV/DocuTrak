@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppState } from '../../context/AppContext';
+import { useTheme } from '../../context/AppContext';
 
 export default function AdSlot() {
-  const { colors } = useAppState();
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.adSlot, { backgroundColor: colors.adBg, borderColor: colors.adBorder }]}>

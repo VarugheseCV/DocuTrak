@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import { useAppState, useAppNavigation } from '../../context/AppContext';
+import { useTheme, useAppNavigation } from '../../context/AppContext';
 import { ROUTES } from '../../navigation/routes';
 
 export default function DocumentCard({ item, onDelete }) {
-  const { colors } = useAppState();
+  const { colors } = useTheme();
   const navigate = useAppNavigation();
 
   const isExpired = item.daysRemaining < 0;
@@ -33,21 +34,23 @@ export default function DocumentCard({ item, onDelete }) {
   );
 
   return (
-    <Swipeable renderRightActions={renderRightActions}>
-      <TouchableOpacity onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })} style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
-        <View style={[styles.itemIcon, { backgroundColor: iconBg }]}>
-          <Ionicons name="document-text" size={22} color={iconColor} />
-        </View>
-        <View style={styles.itemLeft}>
-          <Text style={[styles.itemName, { color: colors.text }]}>{item.documentType?.name || "Document"}</Text>
-          <Text style={[styles.itemSub, { color: colors.textMuted }]}>{item.entity?.name || "Entity"}</Text>
-        </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
-          <Text style={[styles.itemBadge, { color: badgeColor }]}>{badgeText}</Text>
-        </View>
-      </TouchableOpacity>
-    </Swipeable>
+    <Animated.View entering={FadeInDown.duration(300).delay(100)} exiting={FadeOut.duration(200)}>
+      <Swipeable renderRightActions={renderRightActions}>
+        <TouchableOpacity onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })} style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} activeOpacity={0.7}>
+          <View style={[styles.itemIcon, { backgroundColor: iconBg }]}>
+            <Ionicons name="document-text" size={22} color={iconColor} />
+          </View>
+          <View style={styles.itemLeft}>
+            <Text style={[styles.itemName, { color: colors.text }]}>{item.documentType?.name || "Document"}</Text>
+            <Text style={[styles.itemSub, { color: colors.textMuted }]}>{item.entity?.name || "Entity"}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
+            <Text style={[styles.itemBadge, { color: badgeColor }]}>{badgeText}</Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    </Animated.View>
   );
 }
 
