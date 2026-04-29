@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ROUTES } from '../navigation/routes';
 import { lightColors, darkColors } from '../theme/theme';
