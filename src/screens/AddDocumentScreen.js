@@ -38,7 +38,7 @@ export default function AddDocumentScreen() {
       Alert.alert("Image access needed", "Allow image access to attach document photos.");
       return;
     }
-    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
     if (!picked.canceled) setImage(picked.assets[0]);
   }
 

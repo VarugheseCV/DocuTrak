@@ -12,6 +12,7 @@ import { lightColors, darkColors } from "./src/theme/theme";
 import { AppProvider } from "./src/context/AppContext";
 import RootStack from "./src/navigation/RootStack";
 import { scheduleExpiryNotifications } from "./src/services/notifications";
+import { runHealthChecks } from "./src/services/healthCheck";
 import SkeletonLoader from "./src/components/SkeletonLoader";
 
 export default function App() {
@@ -38,12 +39,17 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadState().then((loaded) => {
-      setState(loaded);
-      stateRef.current = loaded;
-      unlockApp(loaded);
+    loadState().then(async (loaded) => {
+      // Run health checks on every boot — auto-repair expired docs, orphaned images, etc.
+      const { state: healthyState, repaired } = runHealthChecks(loaded);
+      if (repaired) {
+        await saveState(healthyState);
+      }
+      setState(healthyState);
+      stateRef.current = healthyState;
+      unlockApp(healthyState);
       setLoading(false);
-      scheduleExpiryNotifications(loaded);
+      scheduleExpiryNotifications(healthyState);
     });
   }, []);
 
