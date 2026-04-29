@@ -6,6 +6,7 @@ const {
   daysUntil,
   filterRows,
   isExpiringWithin,
+  normalizeText,
   sortRows
 } = require("../src/domain/documents");
 const { createBackupPayload, validateBackupPayload } = require("../src/domain/backup");
@@ -127,4 +128,14 @@ test("daysUntil: returns null for invalid dates", () => {
   assert.equal(daysUntil(""), null);
   assert.equal(daysUntil(undefined), null);
   assert.equal(daysUntil(null), null);
+});
+
+test("normalizeText: trims whitespace and handles non-string values", () => {
+  assert.strictEqual(normalizeText("  hello  "), "hello");
+  assert.strictEqual(normalizeText(null), "");
+  assert.strictEqual(normalizeText(undefined), "");
+  assert.strictEqual(normalizeText(""), "");
+  assert.strictEqual(normalizeText(123), "123");
+  assert.strictEqual(normalizeText(0), "0");
+  assert.strictEqual(normalizeText(false), "false");
 });

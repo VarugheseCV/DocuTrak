@@ -3,7 +3,7 @@ function createId(prefix) {
 }
 
 function normalizeText(value) {
-  return String(value || "").trim();
+  return String(value ?? "").trim();
 }
 
 function daysUntil(dateText, now = new Date()) {
