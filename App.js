@@ -8,8 +8,7 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import { createInitialState } from "./src/data/seeds";
 import { loadState, saveState } from "./src/data/store";
-import { scheduleExpiryNotifications } from "./src/services/notifications";
-import { colors } from "./src/theme/theme";
+import { lightColors, darkColors } from "./src/theme/theme";
 import { AppProvider } from "./src/context/AppContext";
 import RootStack from "./src/navigation/RootStack";
 
@@ -20,6 +19,10 @@ export default function App() {
 
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Derived theme info for root level
+  const isDark = state.profile?.themeMode !== "light";
+  const colors = isDark ? darkColors : lightColors;
 
   const unlockApp = async (loadedState) => {
     if (loadedState?.profile?.appLockEnabled) {
@@ -48,28 +51,27 @@ export default function App() {
     setState(nextState);
     stateRef.current = nextState;
     await saveState(nextState);
-    scheduleExpiryNotifications(nextState);
   }, []);
 
   if (loading || !isUnlocked) {
     return (
-      <View style={styles.lockScreen}>
+      <View style={[styles.lockScreen, { backgroundColor: colors.background }]}>
         {!loading && !isUnlocked ? (
           <TouchableOpacity onPress={() => unlockApp(state)} style={{ alignItems: 'center' }}>
             <Ionicons name="lock-closed" size={64} color={colors.primary} />
-            <Text style={styles.lockTitle}>DocuTrak is Locked</Text>
-            <Text style={styles.lockSub}>Tap to unlock</Text>
+            <Text style={[styles.lockTitle, { color: colors.text }]}>DocuTrak is Locked</Text>
+            <Text style={[styles.lockSub, { color: colors.textMuted }]}>Tap to unlock</Text>
           </TouchableOpacity>
         ) : (
-          <Text style={styles.lockSub}>Loading...</Text>
+          <Text style={[styles.lockSub, { color: colors.textMuted }]}>Loading...</Text>
         )}
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={styles.appContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+    <GestureHandlerRootView style={[styles.appContainer, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <AppProvider state={state} commit={commit}>
           <NavigationContainer>
@@ -82,9 +84,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  appContainer: { flex: 1, backgroundColor: colors.background },
+  appContainer: { flex: 1 },
   safeArea: { flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  lockScreen: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
-  lockTitle: { color: colors.text, fontSize: 18, fontWeight: 'bold', marginTop: 16 },
-  lockSub: { color: colors.textMuted, marginTop: 8 },
+  lockScreen: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  lockTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 16 },
+  lockSub: { marginTop: 8 },
 });
