@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from "expo-file-system/legacy";
+import { deleteDocumentImages } from '../services/documentService';
 import { daysUntil } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -31,12 +31,7 @@ export default function DocumentDetailScreen() {
   const images = useMemo(() => (record.imageIds || []).map(id => imageMap.get(id)).filter(Boolean), [record.imageIds, imageMap]);
 
   async function cleanupImages() {
-    await Promise.all(images.map(async (img) => {
-      try {
-        const info = await FileSystem.getInfoAsync(img.uri);
-        if (info.exists) await FileSystem.deleteAsync(img.uri, { idempotent: true });
-      } catch (_) { /* ignore */ }
-    }));
+    await deleteDocumentImages(record.imageIds, state.images);
   }
 
   function deleteRecord() {

@@ -1,0 +1,67 @@
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { useAppState, useAppNavigation } from '../../context/AppContext';
+import { ROUTES } from '../../navigation/routes';
+
+export default function DocumentCard({ item, onDelete }) {
+  const { colors } = useAppState();
+  const navigate = useAppNavigation();
+
+  const isExpired = item.daysRemaining < 0;
+  const iconBg = isExpired ? colors.dangerLight : colors.warningLight;
+  const iconColor = isExpired ? colors.danger : colors.accent;
+  const badgeColor = isExpired ? colors.danger : colors.accent;
+  
+  let badgeText = "";
+  if (isExpired) {
+    const daysAgo = Math.abs(item.daysRemaining);
+    badgeText = daysAgo === 0 ? "Expired Today" : `Expired ${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
+  } else {
+    badgeText = item.daysRemaining === 0 ? "Expires Today" : `Expires in ${item.daysRemaining} day${item.daysRemaining === 1 ? '' : 's'}`;
+  }
+
+  const renderRightActions = () => (
+    <View style={{ flexDirection: 'row' }}>
+      <TouchableOpacity style={[styles.actionBtnEdit, { backgroundColor: colors.primary }]} onPress={() => navigate(ROUTES.ADD_DOCUMENT, { editDocId: item.id })}>
+        <Ionicons name="pencil" size={24} color="#FFF" />
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.actionBtnDelete, { backgroundColor: colors.danger }]} onPress={() => onDelete(item.id)}>
+        <Ionicons name="trash" size={24} color="#FFF" />
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <Swipeable renderRightActions={renderRightActions}>
+      <TouchableOpacity onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })} style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+        <View style={[styles.itemIcon, { backgroundColor: iconBg }]}>
+          <Ionicons name="document-text" size={22} color={iconColor} />
+        </View>
+        <View style={styles.itemLeft}>
+          <Text style={[styles.itemName, { color: colors.text }]}>{item.documentType?.name || "Document"}</Text>
+          <Text style={[styles.itemSub, { color: colors.textMuted }]}>{item.entity?.name || "Entity"}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={[styles.itemDate, { color: colors.text }]}>{item.expiryDate}</Text>
+          <Text style={[styles.itemBadge, { color: badgeColor }]}>{badgeText}</Text>
+        </View>
+      </TouchableOpacity>
+    </Swipeable>
+  );
+}
+
+const styles = StyleSheet.create({
+  listItem: {
+    flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 20,
+    marginBottom: 12, borderWidth: 1,
+  },
+  itemIcon: { width: 48, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  itemLeft: { flex: 1 },
+  itemName: { fontSize: 17, fontWeight: '800' },
+  itemSub: { fontSize: 14, marginTop: 4, fontWeight: '500' },
+  itemDate: { fontSize: 15, fontWeight: '800' },
+  itemBadge: { fontSize: 12, marginTop: 4, fontWeight: '700' },
+  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
+  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 70, marginBottom: 12, borderRadius: 20, marginLeft: 10 },
+});
