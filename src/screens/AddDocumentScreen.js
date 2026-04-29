@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
@@ -26,6 +26,9 @@ export default function AddDocumentScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState(existingDoc?.description || "");
   const [image, setImage] = useState(existingImage || null);
+
+  const activeEntities = useMemo(() => state.entities.filter(e => e.active), [state.entities]);
+  const activeDocumentTypes = useMemo(() => state.documentTypes.filter(d => d.active), [state.documentTypes]);
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -103,7 +106,7 @@ export default function AddDocumentScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[styles.label, { color: colors.text }]}>Entity</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-          {state.entities.filter(e => e.active).map(e => (
+          {activeEntities.map(e => (
             <TouchableOpacity key={e.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, entityId === e.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setEntityId(e.id)}>
               <Text style={[styles.chipText, { color: colors.text }, entityId === e.id && { fontWeight: 'bold' }]}>{e.name}</Text>
             </TouchableOpacity>
@@ -123,7 +126,7 @@ export default function AddDocumentScreen() {
           <TextInput style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]} placeholder="e.g. Visa, Warranty..." placeholderTextColor={colors.textMuted} value={newDocumentTypeName} onChangeText={setNewDocumentTypeName} />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-            {state.documentTypes.filter(d => d.active).map(d => (
+            {activeDocumentTypes.map(d => (
               <TouchableOpacity key={d.id} style={[styles.chip, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }, documentTypeId === d.id && { backgroundColor: colors.primary, borderColor: colors.primary }]} onPress={() => setDocumentTypeId(d.id)}>
                 <Text style={[styles.chipText, { color: colors.text }, documentTypeId === d.id && { fontWeight: 'bold' }]}>{d.name}</Text>
               </TouchableOpacity>
