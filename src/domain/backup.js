@@ -30,8 +30,8 @@ function validateBackupPayload(payload) {
   if (!payload.manifest || !payload.data) {
     return "Backup file is missing its manifest or data.";
   }
-  if (payload.manifest.schemaVersion !== SCHEMA_VERSION) {
-    return `Unsupported backup schema version: ${payload.manifest.schemaVersion}.`;
+  if (payload.manifest.schemaVersion > SCHEMA_VERSION) {
+    return `Backup is from a newer version of DocuTrak. Please update your app.`;
   }
   const requiredArrays = ["entityTypes", "entities", "documentTypes", "documentRecords", "images"];
   const missing = requiredArrays.find((key) => !Array.isArray(payload.data[key]));

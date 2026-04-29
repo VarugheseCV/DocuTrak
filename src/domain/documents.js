@@ -23,6 +23,26 @@ function isExpiringWithin(record, alertDays, now = new Date()) {
   return remaining !== null && remaining >= 0 && remaining <= Number(alertDays || 30);
 }
 
+function formatRelativeExpiryDate(daysRemaining) {
+  if (daysRemaining === null || daysRemaining === undefined) return "";
+  
+  if (daysRemaining < 0) {
+    const daysAgo = Math.abs(daysRemaining);
+    if (daysAgo === 1) return "Expired yesterday";
+    return `Expired ${daysAgo} days ago`;
+  }
+  
+  if (daysRemaining === 0) return "Expires today";
+  if (daysRemaining === 1) return "Expires tomorrow";
+  if (daysRemaining < 7) return `Expires in ${daysRemaining} days`;
+  if (daysRemaining < 30) {
+    const weeks = Math.floor(daysRemaining / 7);
+    return `Expires in ${weeks} week${weeks > 1 ? 's' : ''}`;
+  }
+  const months = Math.floor(daysRemaining / 30);
+  return `Expires in ${months} month${months > 1 ? 's' : ''}`;
+}
+
 function buildExpiryReport(state, now = new Date()) {
   const alertDays = Number(state.profile?.alertDays || 30);
 
@@ -78,5 +98,6 @@ module.exports = {
   isExpiringWithin,
   buildExpiryReport,
   sortRows,
-  filterRows
+  filterRows,
+  formatRelativeExpiryDate
 };

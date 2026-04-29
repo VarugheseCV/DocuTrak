@@ -5,6 +5,8 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useAppState, useAppNavigation } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 
+import { exportBackup, importBackup } from '../services/backupService';
+
 export default function SettingsScreen() {
   const { state, commit, colors } = useAppState();
   const navigate = useAppNavigation();
@@ -19,17 +21,30 @@ export default function SettingsScreen() {
   async function handleBackup() {
     try {
       const result = await exportBackup(state);
-      Alert.alert("Backup successful", "Your data was backed up.");
+      Alert.alert("Backup successful", "Your data was backed up to your device.");
       await commit({ ...state, lastBackupAt: new Date().toLocaleString() });
     } catch (e) { Alert.alert("Backup failed", e.message); }
   }
 
   async function handleRestore() {
     try {
-      // Mock restore for UI demonstration
       Alert.alert("Restore backup?", "This will replace all your current local data.", [
         { text: "Cancel", style: "cancel" },
-        { text: "Restore", style: "destructive", onPress: () => { Alert.alert("Restored", "Data restored successfully."); } },
+        { 
+          text: "Restore", 
+          style: "destructive", 
+          onPress: async () => { 
+            try {
+              const payload = await importBackup();
+              if (payload) {
+                await commit(payload.data);
+                Alert.alert("Restored", "Data restored successfully.");
+              }
+            } catch (err) {
+              Alert.alert("Restore failed", err.message);
+            }
+          } 
+        },
       ]);
     } catch (e) { Alert.alert("Restore failed", e.message); }
   }

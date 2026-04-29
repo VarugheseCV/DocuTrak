@@ -13,10 +13,10 @@ export default function DashboardScreen() {
   const { state, commit, colors, isDark, toggleTheme } = useAppState();
   const alertDays = Number(state.profile?.alertDays || 30);
 
-  const summary = useMemo(() => getDashboardSummary(state, alertDays), [state.documentRecords, state.entities, state.documentTypes, alertDays]);
-  const { expired, expiringSoon } = summary;
+  const summary = useMemo(() => getDashboardSummary(state, alertDays), [state, alertDays]);
+  const { sections } = summary;
 
-  function handleDeleteRecord(recordId) {
+  const handleDeleteRecord = useCallback((recordId) => {
     Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
       { text: "Cancel", style: "cancel" },
       {
@@ -27,7 +27,7 @@ export default function DashboardScreen() {
         },
       },
     ]);
-  }
+  }, [state, commit]);
 
   const renderItem = useCallback(({ item }) => {
     if (item.type === 'sectionHeader') return <SectionHeader title={item.title} />;
@@ -38,19 +38,6 @@ export default function DashboardScreen() {
   const ListHeader = useCallback(() => (
     <DashboardHeader summary={summary} alertDays={alertDays} />
   ), [summary, alertDays]);
-
-  const sections = [];
-  if (expired.length > 0) {
-    sections.push({ type: 'sectionHeader', title: 'Expired Documents', key: 'h-expired' });
-    expired.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-  }
-  if (expiringSoon.length > 0) {
-    sections.push({ type: 'sectionHeader', title: 'Expiring Soon', key: 'h-expiring' });
-    expiringSoon.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-  }
-  if (sections.length === 0) {
-    sections.push({ type: 'empty', key: 'empty' });
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

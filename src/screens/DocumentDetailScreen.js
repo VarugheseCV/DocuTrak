@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { performDocumentDeletion } from '../services/documentService';
-import { daysUntil } from '../domain/documents';
+import { daysUntil, formatRelativeExpiryDate } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
 import ScreenHeader from '../components/ScreenHeader';
@@ -58,10 +58,7 @@ export default function DocumentDetailScreen() {
             <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
             <Text style={[styles.infoText, { color: colors.text }]}>
               {daysRem !== null
-                ? (isExpired 
-                  ? (daysRem === 0 ? `Expired today (${record.expiryDate})` : `Expired ${Math.abs(daysRem)} day${Math.abs(daysRem) === 1 ? '' : 's'} ago (${record.expiryDate})`)
-                  : (daysRem === 0 ? `Expires today (${record.expiryDate})` : `Expires in ${daysRem} day${daysRem === 1 ? '' : 's'} (${record.expiryDate})`)
-                  )
+                ? `${formatRelativeExpiryDate(daysRem)} (${record.expiryDate})`
                 : `Expiry: ${record.expiryDate}`}
             </Text>
           </View>

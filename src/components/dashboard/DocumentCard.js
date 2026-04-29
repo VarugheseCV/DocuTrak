@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { useTheme, useAppNavigation } from '../../context/AppContext';
 import { ROUTES } from '../../navigation/routes';
+import { formatRelativeExpiryDate } from '../../domain/documents';
 
 export default function DocumentCard({ item, onDelete }) {
   const { colors } = useTheme();
@@ -14,13 +15,7 @@ export default function DocumentCard({ item, onDelete }) {
   const iconColor = isExpired ? colors.danger : colors.accent;
   const badgeColor = isExpired ? colors.danger : colors.accent;
   
-  let badgeText = "";
-  if (isExpired) {
-    const daysAgo = Math.abs(item.daysRemaining);
-    badgeText = daysAgo === 0 ? "Expired Today" : `Expired ${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-  } else {
-    badgeText = item.daysRemaining === 0 ? "Expires Today" : `Expires in ${item.daysRemaining} day${item.daysRemaining === 1 ? '' : 's'}`;
-  }
+  const badgeText = formatRelativeExpiryDate(item.daysRemaining);
 
   const renderRightActions = () => (
     <View style={{ flexDirection: 'row' }}>

@@ -22,10 +22,24 @@ export function getDashboardSummary(state, alertDays = 30) {
     .filter(r => r.daysRemaining < 0)
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
 
+  const sections = [];
+  if (exp.length > 0) {
+    sections.push({ type: 'sectionHeader', title: 'Expired Documents', key: 'h-expired' });
+    exp.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+  }
+  if (soon.length > 0) {
+    sections.push({ type: 'sectionHeader', title: 'Expiring Soon', key: 'h-expiring' });
+    soon.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+  }
+  if (sections.length === 0) {
+    sections.push({ type: 'empty', key: 'empty' });
+  }
+
   return {
     activeRecords: active,
     expiringSoon: soon,
     expired: exp,
+    sections,
     totalEntities: state.entities.filter(e => e.active).length,
     totalUrgent: soon.length + exp.length,
     nextExpiry: soon[0] || exp[0],

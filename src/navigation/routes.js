@@ -7,4 +7,5 @@ export const ROUTES = {
   ADD_ENTITY: 'addEntity',
   ENTITY_DETAIL: 'entityDetail',
   DOCUMENT_DETAIL: 'documentDetail',
+  ONBOARDING: 'onboarding',
 };

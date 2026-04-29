@@ -11,6 +11,7 @@ import { loadState, saveState } from "./src/data/store";
 import { lightColors, darkColors } from "./src/theme/theme";
 import { AppProvider } from "./src/context/AppContext";
 import RootStack from "./src/navigation/RootStack";
+import { scheduleExpiryNotifications } from "./src/services/notifications";
 
 export default function App() {
   const [state, setState] = useState(createInitialState());
