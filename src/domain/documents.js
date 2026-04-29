@@ -23,20 +23,6 @@ function isExpiringWithin(record, alertDays, now = new Date()) {
   return remaining !== null && remaining >= 0 && remaining <= Number(alertDays || 30);
 }
 
-function findDuplicateDocumentRecord(records, candidate, ignoreId) {
-  return records.find((record) => {
-    if (ignoreId && record.id === ignoreId) {
-      return false;
-    }
-    return (
-      record.status === "Active" &&
-      candidate.status === "Active" &&
-      record.entityId === candidate.entityId &&
-      record.documentTypeId === candidate.documentTypeId
-    );
-  });
-}
-
 function buildExpiryReport(state, now = new Date()) {
   const alertDays = Number(state.profile?.alertDays || 30);
   return state.documentRecords
@@ -74,7 +60,6 @@ module.exports = {
   normalizeText,
   daysUntil,
   isExpiringWithin,
-  findDuplicateDocumentRecord,
   buildExpiryReport,
   sortRows,
   filterRows
