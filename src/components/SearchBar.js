@@ -24,6 +24,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
     borderRadius: 16,
     paddingHorizontal: 12,
     borderWidth: 1,

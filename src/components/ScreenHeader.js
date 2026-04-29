@@ -33,8 +33,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 15,
+    paddingTop: 8,
+    paddingBottom: 12,
     borderBottomWidth: 1,
   },
   containerFlush: {

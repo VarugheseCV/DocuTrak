@@ -108,11 +108,11 @@ export default function SettingsScreen() {
                 <Text style={[styles.itemName, { color: colors.text }]}>Alert Days</Text>
               </View>
               <View style={styles.alertDaysControls}>
-                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(-5)}>
+                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(-1)}>
                   <Ionicons name="remove" size={20} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.alertDaysValue, { color: colors.text }]}>{profile.alertDays || 30}</Text>
-                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(5)}>
+                <TouchableOpacity style={[styles.alertDaysBtn, { backgroundColor: colors.primary }]} onPress={() => adjustAlertDays(1)}>
                   <Ionicons name="add" size={20} color={colors.text} />
                 </TouchableOpacity>
               </View>
@@ -132,22 +132,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* PROFILE FIELDS */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Profile Setup</Text>
-          {['Profession', 'Country', 'Area'].map(field => (
-            <TouchableOpacity key={field} style={[styles.listItem, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]} onPress={() => openEditModal(field, profile[field.toLowerCase()])}>
-              <View style={styles.itemLeft}>
-                <Ionicons name="person-circle-outline" size={24} color={colors.primary} />
-                <Text style={[styles.itemName, { color: colors.text }]}>{field}</Text>
-              </View>
-              <View style={styles.itemRight}>
-                <Text style={[styles.itemValue, { color: colors.textMuted }]}>{profile[field.toLowerCase()] || "Not set"}</Text>
-                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+
 
         {/* DATA MANAGEMENT */}
         <View style={styles.section}>
