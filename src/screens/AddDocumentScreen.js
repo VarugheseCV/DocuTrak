@@ -83,7 +83,7 @@ export default function AddDocumentScreen() {
 
     let newRecords = state.documentRecords;
     if (editDocId) {
-      newRecords = newRecords.map(r => r.id === editDocId ? record : r);
+      newRecords = newRecords.map(r => r.id === editDocId ? { ...r, ...record } : r);
     } else {
       newRecords = [...newRecords, record];
     }

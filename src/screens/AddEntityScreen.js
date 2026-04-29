@@ -45,7 +45,7 @@ export default function AddEntityScreen() {
 
     let newEntities = state.entities;
     if (editEntityId) {
-      newEntities = newEntities.map(e => e.id === editEntityId ? updatedEntity : e);
+      newEntities = newEntities.map(e => e.id === editEntityId ? { ...e, ...updatedEntity } : e);
     } else {
       newEntities = [...newEntities, updatedEntity];
     }

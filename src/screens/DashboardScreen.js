@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import * as FileSystem from "expo-file-system/legacy";
 import { daysUntil } from '../domain/documents';
 import { useAppState, useAppNavigation } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
@@ -67,10 +68,28 @@ export default function DashboardScreen() {
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive",
-        onPress: () => commit({
-          ...state,
-          documentRecords: state.documentRecords.map(r => r.id === recordId ? { ...r, status: "In-Active" } : r),
-        }),
+        onPress: async () => {
+          const record = state.documentRecords.find(r => r.id === recordId);
+          if (record && record.imageIds && record.imageIds.length > 0) {
+            const imagesToDelete = state.images.filter(img => record.imageIds.includes(img.id));
+            await Promise.all(imagesToDelete.map(async (img) => {
+              try {
+                const info = await FileSystem.getInfoAsync(img.uri);
+                if (info.exists) await FileSystem.deleteAsync(img.uri, { idempotent: true });
+              } catch (_) { /* ignore */ }
+            }));
+            commit({
+              ...state,
+              documentRecords: state.documentRecords.map(r => r.id === recordId ? { ...r, status: "In-Active" } : r),
+              images: state.images.filter(img => !record.imageIds.includes(img.id)),
+            });
+          } else {
+            commit({
+              ...state,
+              documentRecords: state.documentRecords.map(r => r.id === recordId ? { ...r, status: "In-Active" } : r),
+            });
+          }
+        },
       },
     ]);
   }

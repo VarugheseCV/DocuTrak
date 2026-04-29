@@ -19,8 +19,8 @@ export default function DocumentDetailScreen() {
   const documentType = state.documentTypes.find(dt => dt.id === record.documentTypeId);
 
   const daysRem = daysUntil(record.expiryDate);
-  const isExpired = daysRem < 0;
-  const isExpiringSoon = daysRem >= 0 && daysRem <= (state.profile?.alertDays || 30);
+  const isExpired = daysRem !== null && daysRem < 0;
+  const isExpiringSoon = daysRem !== null && daysRem >= 0 && daysRem <= (state.profile?.alertDays || 30);
 
   let statusText = "Active";
   let statusColor = colors.success;
