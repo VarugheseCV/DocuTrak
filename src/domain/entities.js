@@ -11,14 +11,14 @@ function getEntityIcon(typeName) {
   return "folder";
 }
 
-function getEntitySummary(entityId, state) {
+function getEntitySummary(entityId, state, now = new Date()) {
   const alertDays = Number(state.profile?.alertDays || 30);
   const docs = state.documentRecords.filter(d => d.entityId === entityId && d.status === "Active");
   let expiring = 0;
   let expired = 0;
 
   docs.forEach(doc => {
-    const diff = daysUntil(doc.expiryDate);
+    const diff = daysUntil(doc.expiryDate, now);
     if (diff !== null) {
       if (diff < 0) expired++;
       else if (diff <= alertDays) expiring++;
