@@ -7,6 +7,7 @@ const { createId, normalizeText } = require('./normalization');
 const { daysUntil, isExpiringWithin, formatRelativeExpiryDate } = require('./expiry');
 const { buildExpiryReport } = require('./reports');
 const { sortRows, filterRows } = require('./filters');
+const { formatDateInputValue, parseDateInputValue } = require('./dates');
 
 module.exports = {
   createId,
@@ -16,5 +17,7 @@ module.exports = {
   buildExpiryReport,
   sortRows,
   filterRows,
-  formatRelativeExpiryDate
+  formatRelativeExpiryDate,
+  formatDateInputValue,
+  parseDateInputValue
 };

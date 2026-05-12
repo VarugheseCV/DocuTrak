@@ -2,6 +2,7 @@ import { createContext, useContext, useCallback, useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ROUTES } from '../navigation/routes';
 import { lightColors, darkColors } from '../theme/theme';
+import { ToastProvider } from '../components/glass/Toast';
 
 const DataContext = createContext(null);
 const ThemeContext = createContext(null);
@@ -27,7 +28,9 @@ export function AppProvider({ state, commit, children }) {
   return (
     <DataContext.Provider value={dataValue}>
       <ThemeContext.Provider value={themeValue}>
-        {children}
+        <ToastProvider colors={colors}>
+          {children}
+        </ToastProvider>
       </ThemeContext.Provider>
     </DataContext.Provider>
   );

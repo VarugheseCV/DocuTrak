@@ -1,11 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { daysUntil } from '../domain/documents';
+import { daysUntil, formatRelativeExpiryDate } from '../domain/documents';
 import { useAppState, useAppNavigation, useScreenParams } from '../context/AppContext';
 import { ROUTES } from '../navigation/routes';
-import ScreenHeader from '../components/ScreenHeader';
+import ScreenHeader, { HeaderIconButton } from '../components/ScreenHeader';
 import EmptyState from '../components/EmptyState';
+import GlassScreen from '../components/glass/GlassScreen';
+import GlassSurface from '../components/glass/GlassSurface';
 
 export default function EntityDetailScreen() {
   const { state, colors } = useAppState();
@@ -32,31 +34,42 @@ export default function EntityDetailScreen() {
   const renderItem = useCallback(({ item }) => {
     const isExpired = item.daysRemaining < 0;
     const isExpiringSoon = item.daysRemaining >= 0 && item.daysRemaining <= (state.profile?.alertDays || 30);
-
-    let statusColor = colors.success;
-    if (isExpired) statusColor = colors.danger;
-    else if (isExpiringSoon) statusColor = colors.warning;
+    const statusColor = isExpired ? colors.danger : isExpiringSoon ? colors.warning : colors.success;
+    const statusFill = isExpired ? colors.dangerGlass : isExpiringSoon ? colors.warningGlass : colors.successGlass;
 
     return (
-      <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surface }]} onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })}>
-        <View style={styles.itemLeft}>
-          <Text style={[styles.itemName, { color: colors.text }]}>{item.documentType?.name || "Document"}</Text>
-          <Text style={[styles.itemDate, { color: statusColor }]}>{item.expiryDate}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+      <TouchableOpacity
+        activeOpacity={0.76}
+        onPress={() => navigate(ROUTES.DOCUMENT_DETAIL, { id: item.id })}
+        accessibilityRole="button"
+        accessibilityLabel={item.documentType?.name || "Document"}
+      >
+        <GlassSurface blur={false} strong style={styles.listItem} contentStyle={styles.listContent}>
+          <View style={[styles.iconBox, { backgroundColor: statusFill }]}>
+            <Ionicons name="document-text" size={21} color={statusColor} />
+          </View>
+          <View style={styles.itemLeft}>
+            <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{item.documentType?.name || "Document"}</Text>
+            <Text style={[styles.itemDate, { color: statusColor }]} numberOfLines={1}>
+              {item.daysRemaining !== null ? formatRelativeExpiryDate(item.daysRemaining) : item.expiryDate}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        </GlassSurface>
       </TouchableOpacity>
     );
-  }, [state, colors]);
+  }, [state.profile?.alertDays, colors, navigate]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader 
-        title={entity.name} 
-        onBack={() => navigate(ROUTES.ENTITIES)} 
+    <GlassScreen>
+      <ScreenHeader
+        title={entity.name}
+        onBack={() => navigate(ROUTES.ENTITIES)}
         rightAction={
-          <TouchableOpacity onPress={() => navigate(ROUTES.ADD_ENTITY, { editEntityId: entity.id })}>
-            <Ionicons name="pencil" size={24} color={colors.primary} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <HeaderIconButton icon="add" onPress={() => navigate(ROUTES.ADD_DOCUMENT, { entityId: entity.id })} accessibilityLabel="Add document for this entity" color={colors.primary} />
+            <HeaderIconButton icon="pencil" onPress={() => navigate(ROUTES.ADD_ENTITY, { editEntityId: entity.id })} accessibilityLabel="Edit entity" color={colors.primary} />
+          </View>
         }
       />
 
@@ -65,21 +78,20 @@ export default function EntityDetailScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.content}
-        ListEmptyComponent={<EmptyState icon="document-outline" title="No documents found" subtitle="Tap + to add a document for this entity." />}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={<EmptyState icon="document-outline" title="No documents found" subtitle="Use the add button above to track a document for this entity." />}
       />
-    </View>
+    </GlassScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
-  listItem: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 16, borderRadius: 12, marginBottom: 8,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 2,
-  },
-  itemLeft: { flex: 1 },
-  itemName: { fontSize: 16, fontWeight: '600' },
-  itemDate: { fontSize: 14, fontWeight: 'bold', marginTop: 4 },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  listItem: { borderRadius: 20, marginBottom: 10 },
+  listContent: { flexDirection: 'row', alignItems: 'center', padding: 14, minHeight: 72 },
+  iconBox: { width: 44, height: 44, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+  itemLeft: { flex: 1, minWidth: 0 },
+  itemName: { fontSize: 16, fontWeight: '800' },
+  itemDate: { fontSize: 13, fontWeight: '800', marginTop: 4 },
 });

@@ -1,10 +1,14 @@
-import { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { performDocumentDeletion } from '../services/documentService';
 import { getDashboardSummary } from '../domain/dashboard';
 import { useAppState } from '../context/AppContext';
+import { useToast } from '../components/glass/Toast';
+import GlassButton from '../components/glass/GlassButton';
+import GlassScreen from '../components/glass/GlassScreen';
+import ConfirmSheet from '../components/glass/ConfirmSheet';
 import EmptyState from '../components/EmptyState';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import SectionHeader from '../components/dashboard/SectionHeader';
@@ -12,6 +16,8 @@ import DocumentCard from '../components/dashboard/DocumentCard';
 
 export default function DashboardScreen() {
   const { state, commit, colors, isDark, toggleTheme } = useAppState();
+  const { showToast } = useToast();
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const alertDays = Number(state.profile?.alertDays || 30);
 
   const summary = useMemo(() => getDashboardSummary(state, alertDays), [state, alertDays]);
@@ -19,17 +25,16 @@ export default function DashboardScreen() {
 
   const handleDeleteRecord = useCallback((recordId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert("Delete Document", "Are you sure you want to remove this document?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete", style: "destructive",
-        onPress: async () => {
-          const nextState = await performDocumentDeletion(recordId, state);
-          commit(nextState);
-        },
-      },
-    ]);
-  }, [state, commit]);
+    setPendingDeleteId(recordId);
+  }, []);
+
+  const confirmDeleteRecord = useCallback(async () => {
+    if (!pendingDeleteId) return;
+    const nextState = await performDocumentDeletion(pendingDeleteId, state);
+    await commit(nextState);
+    setPendingDeleteId(null);
+    showToast('Document removed');
+  }, [pendingDeleteId, state, commit, showToast]);
 
   const renderItem = useCallback(({ item, index }) => {
     if (item.type === 'sectionHeader') return <SectionHeader title={item.title} />;
@@ -42,15 +47,20 @@ export default function DashboardScreen() {
   ), [summary, alertDays]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <GlassScreen>
       <View style={styles.header}>
         <View>
           <Text style={[styles.brand, { color: colors.primary }]}>DOCUTRAK</Text>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Dashboard</Text>
         </View>
-        <TouchableOpacity onPress={toggleTheme} style={[styles.headerIconBg, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <GlassButton
+          onPress={toggleTheme}
+          accessibilityLabel={isDark ? "Switch to light theme" : "Switch to dark theme"}
+          style={styles.headerIconBg}
+          contentStyle={styles.headerIconContent}
+        >
           <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color={colors.text} />
-        </TouchableOpacity>
+        </GlassButton>
       </View>
 
       <FlatList
@@ -61,12 +71,20 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+      <ConfirmSheet
+        visible={!!pendingDeleteId}
+        title="Delete document?"
+        message="This removes the document from active tracking and deletes its attached images from local storage."
+        confirmLabel="Delete"
+        destructive
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDeleteRecord}
+      />
+    </GlassScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 24, paddingTop: 20, paddingBottom: 15,
@@ -74,8 +92,14 @@ const styles = StyleSheet.create({
   brand: { fontSize: 12, fontWeight: '800', letterSpacing: 2, marginBottom: 4 },
   headerTitle: { fontSize: 32, fontWeight: '900' },
   headerIconBg: {
-    width: 48, height: 48, borderRadius: 24,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 1,
+    width: 48,
+    height: 48,
+  },
+  headerIconContent: {
+    width: 48,
+    height: 48,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   content: { padding: 20, paddingBottom: 40 },
 });

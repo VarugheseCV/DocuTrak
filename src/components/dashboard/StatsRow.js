@@ -1,65 +1,60 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/AppContext';
+import GlassSurface from '../glass/GlassSurface';
 
 export default function StatsRow({ totalEntities, expiringSoonCount, expiredCount }) {
   const { colors } = useTheme();
+  const stats = [
+    { label: 'Entities', value: totalEntities, icon: 'people', color: colors.primary, fill: colors.primaryLight },
+    { label: 'Expiring', value: expiringSoonCount, icon: 'time', color: colors.warning, fill: colors.warningGlass },
+    { label: 'Expired', value: expiredCount, icon: 'alert-circle', color: colors.danger, fill: colors.dangerGlass },
+  ];
 
   return (
     <View style={styles.statsRow}>
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.statHeader}>
-          <Ionicons name="people" size={20} color={colors.primary} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{totalEntities}</Text>
-        </View>
-        <Text style={[styles.statLabel, { color: colors.textMuted }]}>Entities</Text>
-      </View>
-      
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.statHeader}>
-          <Ionicons name="time" size={20} color={colors.warning} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{expiringSoonCount}</Text>
-        </View>
-        <Text style={[styles.statLabel, { color: colors.textMuted }]}>Expiring</Text>
-      </View>
-      
-      <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={styles.statHeader}>
-          <Ionicons name="alert-circle" size={20} color={colors.danger} />
-          <Text style={[styles.statValue, { color: colors.text }]}>{expiredCount}</Text>
-        </View>
-        <Text style={[styles.statLabel, { color: colors.textMuted }]}>Expired</Text>
-      </View>
+      {stats.map((stat) => (
+        <GlassSurface key={stat.label} blur={false} strong style={styles.statCard} contentStyle={styles.statContent}>
+          <View style={[styles.iconWell, { backgroundColor: stat.fill }]}>
+            <Ionicons name={stat.icon} size={18} color={stat.color} />
+          </View>
+          <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]} numberOfLines={1}>{stat.label}</Text>
+        </GlassSurface>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  statsRow: { 
-    flexDirection: 'row', 
-    gap: 12, 
-    marginBottom: 24 
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 22,
   },
-  statCard: { 
-    flex: 1, 
-    paddingVertical: 14,
-    paddingHorizontal: 12, 
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'transparent', // overridden inline
-    // Soft depth
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+  statCard: {
+    flex: 1,
+    borderRadius: 20,
   },
-  statHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 12,
-    marginBottom: 6 
+  statContent: {
+    minHeight: 96,
+    padding: 12,
+    justifyContent: 'space-between',
   },
-  statValue: { fontSize: 22, fontWeight: '800' },
-  statLabel: { fontSize: 12, fontWeight: '500' },
+  iconWell: {
+    width: 34,
+    height: 34,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 23,
+    fontWeight: '900',
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
 });

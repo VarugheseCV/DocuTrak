@@ -4,12 +4,15 @@ const { createInitialState } = require("../src/data/seeds");
 const {
   buildExpiryReport,
   daysUntil,
+  formatDateInputValue,
   filterRows,
   isExpiringWithin,
   normalizeText,
+  parseDateInputValue,
   sortRows
 } = require("../src/domain/documents");
 const { createBackupPayload, validateBackupPayload } = require("../src/domain/backup");
+const { runHealthChecks } = require("../src/services/healthCheck");
 
 test("calculates expiry windows from whole calendar days", () => {
   assert.equal(daysUntil("2026-05-27", new Date("2026-04-27T18:00:00")), 30);
@@ -138,4 +141,77 @@ test("normalizeText: trims whitespace and handles non-string values", () => {
   assert.strictEqual(normalizeText(123), "123");
   assert.strictEqual(normalizeText(0), "0");
   assert.strictEqual(normalizeText(false), "false");
+});
+
+test("health checks keep expired documents active for computed dashboard display", () => {
+  const state = createInitialState();
+  state.documentRecords = [
+    {
+      id: "expired-active",
+      entityId: "entity-1",
+      documentTypeId: "document-type-1",
+      expiryDate: "2026-04-30",
+      status: "Active",
+      imageIds: []
+    }
+  ];
+
+  const result = runHealthChecks(state);
+
+  assert.equal(result.repaired, false);
+  assert.equal(result.state.documentRecords[0].status, "Active");
+});
+
+test("health checks repair legacy persisted Expired statuses", () => {
+  const state = createInitialState();
+  state.documentRecords = [
+    {
+      id: "legacy-expired",
+      entityId: "entity-1",
+      documentTypeId: "document-type-1",
+      expiryDate: "2026-04-30",
+      status: "Expired",
+      imageIds: []
+    }
+  ];
+
+  const result = runHealthChecks(state);
+
+  assert.equal(result.repaired, true);
+  assert.equal(result.state.documentRecords[0].status, "Active");
+});
+
+test("health checks reconcile legacy image ownership and remove orphaned images", () => {
+  const state = createInitialState();
+  state.documentRecords = [
+    {
+      id: "record-1",
+      entityId: "entity-1",
+      documentTypeId: "document-type-1",
+      expiryDate: "2026-06-01",
+      status: "Active",
+      imageIds: ["image-kept"]
+    }
+  ];
+  state.images = [
+    { id: "image-kept", uri: "file://kept.jpg" },
+    { id: "image-orphan", uri: "file://orphan.jpg" }
+  ];
+
+  const result = runHealthChecks(state);
+
+  assert.equal(result.repaired, true);
+  assert.deepEqual(result.state.images, [
+    { id: "image-kept", uri: "file://kept.jpg", documentRecordId: "record-1" }
+  ]);
+});
+
+test("date input helpers preserve local calendar dates", () => {
+  const value = "2026-05-13";
+  const parsed = parseDateInputValue(value);
+
+  assert.equal(parsed.getFullYear(), 2026);
+  assert.equal(parsed.getMonth(), 4);
+  assert.equal(parsed.getDate(), 13);
+  assert.equal(formatDateInputValue(new Date(2026, 4, 13)), value);
 });

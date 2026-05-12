@@ -1,12 +1,13 @@
-import { View, TextInput, StyleSheet } from 'react-native';
+import { TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppState } from '../context/AppContext';
+import GlassSurface from './glass/GlassSurface';
 
 export default function SearchBar({ value, onChangeText, placeholder = "Search..." }) {
   const { colors } = useAppState();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+    <GlassSurface blur={false} strong style={styles.surface} contentStyle={styles.container}>
       <Ionicons name="search" size={20} color={colors.textMuted} style={styles.icon} />
       <TextInput
         style={[styles.input, { color: colors.text }]}
@@ -14,26 +15,32 @@ export default function SearchBar({ value, onChangeText, placeholder = "Search..
         placeholderTextColor={colors.textMuted}
         value={value}
         onChangeText={onChangeText}
+        accessibilityLabel={placeholder}
       />
-    </View>
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
+  surface: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 20,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 4,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    borderWidth: 1,
+    paddingHorizontal: 14,
+    minHeight: 52,
   },
-  icon: { marginRight: 8 },
+  icon: {
+    marginRight: 8,
+  },
   input: {
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
+    fontWeight: '600',
   },
 });

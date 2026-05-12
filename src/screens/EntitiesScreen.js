@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Animated } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import * as Haptics from 'expo-haptics';
@@ -10,6 +10,10 @@ import SearchBar from '../components/SearchBar';
 import EmptyState from '../components/EmptyState';
 import ScreenHeader from '../components/ScreenHeader';
 import StatusDot from '../components/StatusDot';
+import GlassScreen from '../components/glass/GlassScreen';
+import GlassSurface from '../components/glass/GlassSurface';
+import ConfirmSheet from '../components/glass/ConfirmSheet';
+import { useToast } from '../components/glass/Toast';
 
 function AnimatedEntityCard({ entity, index, colors, state, navigate, renderRightActions }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -31,22 +35,30 @@ function AnimatedEntityCard({ entity, index, colors, state, navigate, renderRigh
   return (
     <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
       <Swipeable renderRightActions={() => renderRightActions(entity.id)}>
-        <TouchableOpacity style={[styles.listItem, { backgroundColor: colors.surface }]} activeOpacity={0.7} onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}>
-          <StatusDot color={statusColor} />
-          <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
-            <Ionicons name={iconName} size={24} color={colors.primary} />
-          </View>
-          <View style={styles.itemText}>
-            <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
-            <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
-              {typeName} • {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
-              {(summary.expiring > 0 || summary.expired > 0) ? ' • ' : ''}
-              {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
-              {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
-              {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        <TouchableOpacity
+          activeOpacity={0.76}
+          onPress={() => navigate(ROUTES.ENTITY_DETAIL, { id: entity.id })}
+          accessibilityRole="button"
+          accessibilityLabel={`${entity.name}, ${summary.totalDocs} documents`}
+          accessibilityHint="Opens entity details. Swipe left for edit and delete actions."
+        >
+          <GlassSurface blur={false} strong style={styles.listItem} contentStyle={styles.listContent}>
+            <StatusDot color={statusColor} />
+            <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name={iconName} size={24} color={colors.primary} />
+            </View>
+            <View style={styles.itemText}>
+              <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>{entity.name}</Text>
+              <Text style={[styles.itemSub, { color: colors.textMuted }]} numberOfLines={1}>
+                {typeName} - {summary.totalDocs} doc{summary.totalDocs !== 1 && 's'}
+                {(summary.expiring > 0 || summary.expired > 0) ? ' - ' : ''}
+                {summary.expiring > 0 ? <Text style={{ color: colors.warning }}>{summary.expiring} expiring</Text> : null}
+                {(summary.expiring > 0 && summary.expired > 0) ? ', ' : ''}
+                {summary.expired > 0 ? <Text style={{ color: colors.danger }}>{summary.expired} expired</Text> : null}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          </GlassSurface>
         </TouchableOpacity>
       </Swipeable>
     </Animated.View>
@@ -55,8 +67,10 @@ function AnimatedEntityCard({ entity, index, colors, state, navigate, renderRigh
 
 export default function EntitiesScreen() {
   const { state, commit, colors } = useAppState();
+  const { showToast } = useToast();
   const navigate = useAppNavigation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const entities = state.entities.filter(
     e => e.active && e.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -66,28 +80,29 @@ export default function EntitiesScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const activeDocs = state.documentRecords.filter(d => d.entityId === entityId && d.status === "Active");
     if (activeDocs.length > 0) {
-      Alert.alert("Cannot Delete", `This entity has ${activeDocs.length} active document(s). Please remove them first.`);
+      showToast(`Remove ${activeDocs.length} active document${activeDocs.length === 1 ? '' : 's'} first.`, 'error');
       return;
     }
-    Alert.alert("Delete Entity", "Are you sure you want to remove this entity?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete", style: "destructive",
-        onPress: () => commit({ ...state, entities: state.entities.map(e => e.id === entityId ? { ...e, active: false } : e) }),
-      },
-    ]);
+    setPendingDeleteId(entityId);
+  }
+
+  async function confirmDeleteEntity() {
+    if (!pendingDeleteId) return;
+    await commit({ ...state, entities: state.entities.map(e => e.id === pendingDeleteId ? { ...e, active: false } : e) });
+    setPendingDeleteId(null);
+    showToast('Entity removed');
   }
 
   const renderRightActions = useCallback((entityId) => (
-    <View style={{ flexDirection: 'row' }}>
-      <TouchableOpacity style={[styles.actionBtnEdit, { backgroundColor: colors.primary }]} onPress={() => navigate(ROUTES.ADD_ENTITY, { editEntityId: entityId })}>
+    <View style={styles.actions}>
+      <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.primary }]} onPress={() => navigate(ROUTES.ADD_ENTITY, { editEntityId: entityId })} accessibilityRole="button" accessibilityLabel="Edit entity">
         <Ionicons name="pencil" size={24} color="#FFF" />
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.actionBtnDelete, { backgroundColor: colors.danger }]} onPress={() => handleDeleteEntity(entityId)}>
+      <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.danger }]} onPress={() => handleDeleteEntity(entityId)} accessibilityRole="button" accessibilityLabel="Delete entity">
         <Ionicons name="trash" size={24} color="#FFF" />
       </TouchableOpacity>
     </View>
-  ), [state, colors]);
+  ), [state, colors, pendingDeleteId]);
 
   const renderEntity = useCallback(({ item: entity, index }) => (
     <AnimatedEntityCard
@@ -98,10 +113,10 @@ export default function EntitiesScreen() {
       navigate={navigate}
       renderRightActions={renderRightActions}
     />
-  ), [state, colors]);
+  ), [state, colors, renderRightActions]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <GlassScreen>
       <ScreenHeader title="Entities" onBack={() => navigate(ROUTES.DASHBOARD)} />
 
       <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search entities..." />
@@ -112,30 +127,37 @@ export default function EntitiesScreen() {
         renderItem={renderEntity}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState icon="folder-open-outline" title="No entities yet." subtitle="Tap the + button to add one." />}
+        ListEmptyComponent={<EmptyState icon="folder-open-outline" title="No entities yet." subtitle="Tap Add Entity from the dashboard to start." />}
       />
-    </View>
+
+      <ConfirmSheet
+        visible={!!pendingDeleteId}
+        title="Delete entity?"
+        message="This hides the entity from active lists. Documents must be removed before deleting an entity."
+        confirmLabel="Delete"
+        destructive
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={confirmDeleteEntity}
+      />
+    </GlassScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: { paddingHorizontal: 20, paddingTop: 15, paddingBottom: 15 },
-  title: { fontSize: 28, fontWeight: '800' },
   content: { padding: 16, paddingBottom: 40 },
   listItem: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 14, borderRadius: 16, marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
+    borderRadius: 20,
+    marginBottom: 10,
   },
-  iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-  itemText: { flex: 1, marginRight: 10 },
-  itemName: { fontSize: 16, fontWeight: '700' },
-  itemSub: { fontSize: 13, marginTop: 2, fontWeight: '500' },
-  actionBtnEdit: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
-  actionBtnDelete: { justifyContent: 'center', alignItems: 'center', width: 64, marginBottom: 8, borderRadius: 16, marginLeft: 8 },
+  listContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+  },
+  iconBox: { width: 44, height: 44, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+  itemText: { flex: 1, marginRight: 10, minWidth: 0 },
+  itemName: { fontSize: 16, fontWeight: '800' },
+  itemSub: { fontSize: 13, marginTop: 2, fontWeight: '600' },
+  actions: { flexDirection: 'row', marginBottom: 10 },
+  actionBtn: { justifyContent: 'center', alignItems: 'center', width: 64, borderRadius: 18, marginLeft: 8 },
 });

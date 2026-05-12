@@ -41,6 +41,11 @@ export async function replaceState(state) {
 }
 
 function migrateState(state) {
+  const documentRecords = (state.documentRecords || []).map((record) => ({
+    ...record,
+    status: record.status === "Expired" ? "Active" : record.status || "Active"
+  }));
+
   return {
     ...createInitialState(),
     ...state,
@@ -52,7 +57,7 @@ function migrateState(state) {
     entityTypes: state.entityTypes || [],
     entities: state.entities || [],
     documentTypes: state.documentTypes || [],
-    documentRecords: state.documentRecords || [],
+    documentRecords,
     images: state.images || []
   };
 }

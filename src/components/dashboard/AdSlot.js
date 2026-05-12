@@ -1,26 +1,42 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/AppContext';
+import GlassSurface from '../glass/GlassSurface';
 
 export default function AdSlot() {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.adSlot, { backgroundColor: colors.adBg, borderColor: colors.adBorder }]}>
+    <GlassSurface blur={false} style={styles.adSlot} contentStyle={styles.content}>
       <View style={[styles.iconBg, { backgroundColor: colors.primaryLight }]}>
         <Ionicons name="megaphone" size={16} color={colors.primary} />
       </View>
-      <Text style={[styles.adText, { color: colors.textMuted }]}>Sponsored • Ad space available</Text>
-    </View>
+      <Text style={[styles.adText, { color: colors.textMuted }]}>Sponsored - Ad space available</Text>
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
   adSlot: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderRadius: 14,
-    padding: 14, marginBottom: 28, gap: 10,
+    borderRadius: 18,
+    marginBottom: 28,
   },
-  iconBg: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  adText: { fontWeight: '600', fontSize: 13, flex: 1 },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 10,
+  },
+  iconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  adText: {
+    fontWeight: '700',
+    fontSize: 13,
+    flex: 1,
+  },
 });

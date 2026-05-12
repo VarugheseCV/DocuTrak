@@ -17,6 +17,17 @@ export const darkColors = {
   background: "#0B0D10",          // Dark charcoal background
   surface: "#16181D",             // Soft tonal surface
   surfaceElevated: "#1E2129",     // Higher elevation surface
+  backdropTop: "#11151E",
+  backdropBottom: "#07090C",
+  glassFill: "rgba(255, 255, 255, 0.075)",
+  glassFillStrong: "rgba(255, 255, 255, 0.115)",
+  glassBorder: "rgba(255, 255, 255, 0.16)",
+  glassHighlight: "rgba(255, 255, 255, 0.28)",
+  glassShadow: "rgba(0, 0, 0, 0.48)",
+  backdropTint: "rgba(79, 124, 255, 0.05)",
+  successGlass: "rgba(48, 209, 88, 0.13)",
+  warningGlass: "rgba(245, 166, 35, 0.14)",
+  dangerGlass: "rgba(255, 69, 58, 0.14)",
   
   // Text
   text: "#FFFFFF",
@@ -54,6 +65,17 @@ export const lightColors = {
   background: "#F0F1F3",          // Cool grey canvas
   surface: "#FFFFFF",             // Pure white cards
   surfaceElevated: "#FFFFFF",     // Also white (elevation via shadow, not color)
+  backdropTop: "#F7FAFF",
+  backdropBottom: "#E8EDF5",
+  glassFill: "rgba(255, 255, 255, 0.58)",
+  glassFillStrong: "rgba(255, 255, 255, 0.78)",
+  glassBorder: "rgba(255, 255, 255, 0.9)",
+  glassHighlight: "rgba(255, 255, 255, 0.95)",
+  glassShadow: "rgba(61, 74, 104, 0.16)",
+  backdropTint: "rgba(61, 106, 232, 0.055)",
+  successGlass: "rgba(45, 164, 78, 0.12)",
+  warningGlass: "rgba(212, 133, 12, 0.13)",
+  dangerGlass: "rgba(207, 34, 46, 0.12)",
   
   // Text
   text: "#1A1C22",               // Near-black for readability

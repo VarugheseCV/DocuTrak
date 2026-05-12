@@ -58,7 +58,9 @@ export default function App() {
     const nextState = typeof updater === "function" ? updater(current) : updater;
     setState(nextState);
     stateRef.current = nextState;
-    await saveState(nextState);
+    const savedState = await saveState(nextState);
+    setState(savedState);
+    stateRef.current = savedState;
   }, []);
 
   if (loading || !isUnlocked) {
@@ -103,4 +105,3 @@ const styles = StyleSheet.create({
   lockTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 16 },
   lockSub: { marginTop: 8 },
 });
-

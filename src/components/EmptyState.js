@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/AppContext';
+import GlassSurface from './glass/GlassSurface';
 
 export default function EmptyState({ icon = "folder-open-outline", title, subtitle }) {
   const { colors } = useTheme();
@@ -11,14 +12,16 @@ export default function EmptyState({ icon = "folder-open-outline", title, subtit
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 400,
-      delay: 200,
+      delay: 160,
       useNativeDriver: true,
     }).start();
   }, []);
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <Ionicons name={icon} size={64} color={colors.borderHighlight} />
+      <GlassSurface blur={false} strong style={styles.iconSurface} contentStyle={styles.iconContent}>
+        <Ionicons name={icon} size={42} color={colors.primary} />
+      </GlassSurface>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {subtitle && <Text style={[styles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text>}
     </Animated.View>
@@ -26,7 +29,35 @@ export default function EmptyState({ icon = "folder-open-outline", title, subtit
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingBottom: 40 },
-  title: { fontSize: 18, fontWeight: 'bold', marginTop: 16 },
-  subtitle: { fontSize: 14, marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 76,
+    paddingBottom: 44,
+  },
+  iconSurface: {
+    width: 86,
+    height: 86,
+    borderRadius: 30,
+  },
+  iconContent: {
+    width: 86,
+    height: 86,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '900',
+    marginTop: 18,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    fontWeight: '600',
+  },
 });

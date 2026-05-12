@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import { formatDateInputValue } from "../domain/dates";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -10,10 +11,6 @@ Notifications.setNotificationHandler({
 });
 
 export async function requestNotificationAccess() {
-  const current = await Notifications.getPermissionsAsync();
-  if (current.granted) return true;
-  
-  const next = await Notifications.requestPermissionsAsync();
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("expiry-alerts", {
       name: "Expiry alerts",
@@ -22,6 +19,11 @@ export async function requestNotificationAccess() {
       lightColor: '#FF231F7C',
     });
   }
+
+  const current = await Notifications.getPermissionsAsync();
+  if (current.granted) return true;
+  
+  const next = await Notifications.requestPermissionsAsync();
   return next.granted;
 }
 
@@ -50,19 +52,19 @@ export async function scheduleExpiryNotifications(state) {
     // Schedule initial alert
     const alertDate = new Date(expiryDate);
     alertDate.setDate(alertDate.getDate() - alertDays);
-    addSchedule(alertDate.toISOString().split('T')[0], record);
+    addSchedule(formatDateInputValue(alertDate), record);
 
     // Schedule 7-day recurring check
     if (alertDays > 7) {
       const weekDate = new Date(expiryDate);
       weekDate.setDate(weekDate.getDate() - 7);
-      addSchedule(weekDate.toISOString().split('T')[0], record);
+      addSchedule(formatDateInputValue(weekDate), record);
     }
 
     // Schedule 1-day urgent check
     const eveDate = new Date(expiryDate);
     eveDate.setDate(eveDate.getDate() - 1);
-    addSchedule(eveDate.toISOString().split('T')[0], record);
+    addSchedule(formatDateInputValue(eveDate), record);
   }
 
   const promises = [];
