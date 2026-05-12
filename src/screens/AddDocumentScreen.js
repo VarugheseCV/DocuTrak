@@ -218,22 +218,30 @@ export default function AddDocumentScreen() {
         />
 
         <Text style={[styles.label, { color: colors.text }]}>Document Image</Text>
-        <GlassSurface blur={false} strong style={styles.imageSurface} contentStyle={styles.imageContent}>
-          <TouchableOpacity style={styles.imageTapArea} onPress={pickImage} activeOpacity={0.78} accessibilityRole="button" accessibilityLabel="Choose document image">
+        <GlassSurface blur={false} strong style={[styles.imageSurface, image && { shadowColor: colors.success, shadowOpacity: 0.18 }]} contentStyle={styles.imageContent}>
+          <TouchableOpacity style={styles.imageTapArea} onPress={pickImage} activeOpacity={0.78} accessibilityRole="button" accessibilityLabel={image ? "Change document image" : "Choose document image"}>
             {image ? (
-              <Image source={{ uri: image.uri }} style={styles.previewImage} />
+              <>
+                <Image source={{ uri: image.uri }} style={styles.previewImage} />
+                <View style={styles.imageNameBadge}>
+                  <Ionicons name="attach" size={14} color="#FFF" />
+                  <Text style={styles.imageNameText} numberOfLines={1}>{image.fileName || 'Image attached'}</Text>
+                </View>
+              </>
             ) : (
               <View style={styles.imageEmpty}>
-                <Ionicons name="camera" size={30} color={colors.primary} />
-                <Text style={[styles.imagePickerText, { color: colors.primary }]}>Add photo</Text>
-                <Text style={[styles.imagePickerSub, { color: colors.textMuted }]}>JPG or PNG</Text>
+                <View style={[styles.cameraWell, { backgroundColor: colors.primaryLight }]}>
+                  <Ionicons name="camera" size={28} color={colors.primary} />
+                </View>
+                <Text style={[styles.imagePickerText, { color: colors.primary }]}>Tap to add photo</Text>
+                <Text style={[styles.imagePickerSub, { color: colors.textMuted }]}>JPG or PNG · Optional</Text>
               </View>
             )}
           </TouchableOpacity>
           {image && (
             <View style={styles.imageActions}>
-              <GlassButton icon="swap-horizontal" label="Replace" onPress={pickImage} variant="primary" style={styles.imageAction} />
-              <GlassButton icon="trash" label="Remove" onPress={() => setImage(null)} variant="danger" style={styles.imageAction} />
+              <GlassButton icon="swap-horizontal" label="Replace" onPress={pickImage} variant="primary" style={styles.imageAction} accessibilityLabel="Replace attached image" />
+              <GlassButton icon="trash" label="Remove" onPress={() => setImage(null)} variant="danger" style={styles.imageAction} accessibilityLabel="Remove attached image" />
             </View>
           )}
         </GlassSurface>
@@ -277,9 +285,12 @@ const styles = StyleSheet.create({
   imageContent: { padding: 12 },
   imageTapArea: { height: 148, borderRadius: 18, overflow: 'hidden' },
   imageEmpty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  imagePickerText: { marginTop: 10, fontWeight: '900', fontSize: 15 },
+  cameraWell: { width: 56, height: 56, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  imagePickerText: { fontWeight: '900', fontSize: 15 },
   imagePickerSub: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   previewImage: { width: '100%', height: '100%', borderRadius: 18 },
+  imageNameBadge: { position: 'absolute', left: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, maxWidth: '80%' },
+  imageNameText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
   imageActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
   imageAction: { flex: 1 },
   footer: { position: 'absolute', left: 20, right: 20, bottom: 24 },

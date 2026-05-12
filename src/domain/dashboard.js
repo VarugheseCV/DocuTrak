@@ -1,5 +1,7 @@
 import { daysUntil } from './documents';
 
+const MAX_PER_GROUP = 5;
+
 export function getDashboardSummary(state, alertDays = 30) {
   const entityMap = new Map(state.entities.map(e => [e.id, e]));
   const typeMap = new Map(state.documentTypes.map(dt => [dt.id, dt]));
@@ -24,10 +26,18 @@ export function getDashboardSummary(state, alertDays = 30) {
 
   const sections = [];
   
-  if (exp.length > 0) {
-    sections.push({ type: 'sectionHeader', title: 'Expired', key: 'h-expired' });
-    exp.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+  function pushGroup(items, title, key) {
+    if (items.length === 0) return;
+    const capped = items.length > MAX_PER_GROUP;
+    sections.push({ type: 'sectionHeader', title, key, total: items.length, capped });
+    const visible = capped ? items.slice(0, MAX_PER_GROUP) : items;
+    visible.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+    if (capped) {
+      sections.push({ type: 'viewAll', title, key: `viewall-${key}`, remaining: items.length - MAX_PER_GROUP, allItems: items.slice(MAX_PER_GROUP) });
+    }
   }
+
+  pushGroup(exp, 'Expired', 'h-expired');
 
   if (soon.length > 0) {
     const today = soon.filter(r => r.daysRemaining === 0);
@@ -35,22 +45,10 @@ export function getDashboardSummary(state, alertDays = 30) {
     const thisMonth = soon.filter(r => r.daysRemaining > 7 && r.daysRemaining <= 30);
     const later = soon.filter(r => r.daysRemaining > 30);
 
-    if (today.length > 0) {
-      sections.push({ type: 'sectionHeader', title: 'Expiring Today', key: 'h-today' });
-      today.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    }
-    if (thisWeek.length > 0) {
-      sections.push({ type: 'sectionHeader', title: 'Expiring This Week', key: 'h-thisweek' });
-      thisWeek.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    }
-    if (thisMonth.length > 0) {
-      sections.push({ type: 'sectionHeader', title: 'Expiring This Month', key: 'h-thismonth' });
-      thisMonth.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    }
-    if (later.length > 0) {
-      sections.push({ type: 'sectionHeader', title: 'Expiring Later', key: 'h-later' });
-      later.forEach(d => sections.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
-    }
+    pushGroup(today, 'Expiring Today', 'h-today');
+    pushGroup(thisWeek, 'Expiring This Week', 'h-thisweek');
+    pushGroup(thisMonth, 'Expiring This Month', 'h-thismonth');
+    pushGroup(later, 'Expiring Later', 'h-later');
   }
 
   if (sections.length === 0) {

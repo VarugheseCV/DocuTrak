@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -18,10 +18,24 @@ export default function DashboardScreen() {
   const { state, commit, colors, isDark, toggleTheme } = useAppState();
   const { showToast } = useToast();
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [expandedGroups, setExpandedGroups] = useState({});
   const alertDays = Number(state.profile?.alertDays || 30);
 
   const summary = useMemo(() => getDashboardSummary(state, alertDays), [state, alertDays]);
-  const { sections } = summary;
+
+  // Expand capped groups inline when user taps "Show all"
+  const sections = useMemo(() => {
+    const result = [];
+    for (const item of summary.sections) {
+      if (item.type === 'viewAll' && expandedGroups[item.key]) {
+        // Already expanded — inject the hidden items as docs
+        item.allItems.forEach(d => result.push({ type: 'doc', ...d, key: `doc-${d.id}` }));
+      } else {
+        result.push(item);
+      }
+    }
+    return result;
+  }, [summary.sections, expandedGroups]);
 
   const handleDeleteRecord = useCallback((recordId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -36,11 +50,23 @@ export default function DashboardScreen() {
     showToast('Document removed');
   }, [pendingDeleteId, state, commit, showToast]);
 
+  const handleExpandGroup = useCallback((key) => {
+    setExpandedGroups(prev => ({ ...prev, [key]: true }));
+  }, []);
+
   const renderItem = useCallback(({ item, index }) => {
-    if (item.type === 'sectionHeader') return <SectionHeader title={item.title} />;
+    if (item.type === 'sectionHeader') return <SectionHeader title={item.title} total={item.capped ? item.total : undefined} />;
+    if (item.type === 'viewAll') return (
+      <GlassButton
+        icon="chevron-down"
+        label={`Show ${item.remaining} more`}
+        onPress={() => handleExpandGroup(item.key)}
+        style={styles.viewAllButton}
+      />
+    );
     if (item.type === 'empty') return <EmptyState icon="documents-outline" title="No documents tracked" subtitle="Tap the + button to add your first document." />;
     return <DocumentCard item={item} index={index} onDelete={handleDeleteRecord} />;
-  }, [handleDeleteRecord]);
+  }, [handleDeleteRecord, handleExpandGroup]);
 
   const ListHeader = useCallback(() => (
     <DashboardHeader summary={summary} alertDays={alertDays} />
@@ -102,4 +128,5 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   content: { padding: 20, paddingBottom: 40 },
+  viewAllButton: { marginBottom: 12 },
 });

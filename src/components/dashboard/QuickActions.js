@@ -9,10 +9,10 @@ export default function QuickActions() {
   const { colors } = useTheme();
   const navigate = useAppNavigation();
   const actions = [
-    { label: 'Add Doc', icon: 'document-text', color: colors.primary, route: ROUTES.ADD_DOCUMENT },
-    { label: 'Add Entity', icon: 'person-add', color: colors.success, route: ROUTES.ADD_ENTITY },
-    { label: 'Entities', icon: 'grid', color: colors.primary, route: ROUTES.ENTITIES },
-    { label: 'Settings', icon: 'settings', color: colors.textMuted, route: ROUTES.SETTINGS },
+    { label: 'Add Doc', icon: 'document-text', color: colors.primary, tint: colors.primaryLight, route: ROUTES.ADD_DOCUMENT },
+    { label: 'Add Entity', icon: 'person-add', color: colors.success, tint: colors.successGlass, route: ROUTES.ADD_ENTITY },
+    { label: 'Entities', icon: 'grid', color: colors.primary, tint: colors.primaryLight, route: ROUTES.ENTITIES },
+    { label: 'Settings', icon: 'settings', color: colors.textMuted, tint: 'transparent', route: ROUTES.SETTINGS },
   ];
 
   function handleAction(route) {
@@ -31,8 +31,10 @@ export default function QuickActions() {
           accessibilityRole="button"
           accessibilityLabel={action.label}
         >
-          <GlassSurface blur={false} strong style={styles.quickActionGlass} contentStyle={styles.quickActionContent}>
-            <Ionicons name={action.icon} size={21} color={action.color} />
+          <GlassSurface blur={false} strong style={styles.quickActionGlass} contentStyle={[styles.quickActionContent, { backgroundColor: action.tint }]}>
+            <View style={[styles.iconInner, { backgroundColor: action.tint }]}>
+              <Ionicons name={action.icon} size={23} color={action.color} />
+            </View>
           </GlassSurface>
           <Text style={[styles.quickActionLabel, { color: colors.text }]} numberOfLines={1}>{action.label}</Text>
         </TouchableOpacity>
@@ -54,14 +56,22 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   quickActionGlass: {
-    width: 58,
-    height: 58,
-    borderRadius: 20,
+    width: 62,
+    height: 62,
+    borderRadius: 22,
     marginBottom: 9,
   },
   quickActionContent: {
-    width: 58,
-    height: 58,
+    width: 62,
+    height: 62,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+  },
+  iconInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },

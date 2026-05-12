@@ -57,7 +57,7 @@ export default function OnboardingScreen() {
         profile: { ...state.profile, hasCompletedOnboarding: true }
       });
       navigate(ROUTES.DASHBOARD);
-      setTimeout(() => navigate(ROUTES.ADD_ENTITY), 500);
+      setTimeout(() => navigate(ROUTES.ADD_ENTITY, { fromOnboarding: true }), 500);
     }
   }
 

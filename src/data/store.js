@@ -1,20 +1,61 @@
-import * as FileSystem from "expo-file-system/legacy";
-import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import { createInitialState, defaultProfile, SCHEMA_VERSION } from "./seeds";
 
-const DATA_FILE = `${FileSystem.documentDirectory}docutrak-data.json`;
+// On web, expo-secure-store and expo-file-system have limited support.
+// We use lazy imports and wrap calls to gracefully fall back to localStorage.
+let _FileSystem = null;
+let _SecureStore = null;
+
+function getFileSystem() {
+  if (_FileSystem) return _FileSystem;
+  if (Platform.OS === "web") {
+    _FileSystem = {
+      documentDirectory: "",
+      readAsStringAsync: async (key) => {
+        const v = localStorage.getItem(key);
+        if (v == null) throw new Error("not found");
+        return v;
+      },
+      writeAsStringAsync: async (key, value) => localStorage.setItem(key, value),
+    };
+  } else {
+    _FileSystem = require("expo-file-system/legacy");
+  }
+  return _FileSystem;
+}
+
+function getSecureStore() {
+  if (_SecureStore) return _SecureStore;
+  if (Platform.OS === "web") {
+    _SecureStore = {
+      getItemAsync: async (key) => localStorage.getItem(key),
+      setItemAsync: async (key, value) => localStorage.setItem(key, value),
+    };
+  } else {
+    _SecureStore = require("expo-secure-store");
+  }
+  return _SecureStore;
+}
+
+function getDataFilePath() {
+  if (Platform.OS === "web") return "docutrak-data";
+  return `${getFileSystem().documentDirectory}docutrak-data.json`;
+}
+
 const PROFILE_KEY = "docutrak-profile";
 
 export async function loadState() {
   try {
+    const FS = getFileSystem();
+    const SS = getSecureStore();
     let baseState;
     try {
-      const content = await FileSystem.readAsStringAsync(DATA_FILE);
+      const content = await FS.readAsStringAsync(getDataFilePath());
       baseState = JSON.parse(content);
     } catch (e) {
       baseState = createInitialState();
     }
-    const profileJson = await SecureStore.getItemAsync(PROFILE_KEY);
+    const profileJson = await SS.getItemAsync(PROFILE_KEY);
     const profile = profileJson ? JSON.parse(profileJson) : baseState.profile || defaultProfile;
     return migrateState({
       ...baseState,
@@ -30,9 +71,11 @@ export async function loadState() {
 }
 
 export async function saveState(state) {
+  const FS = getFileSystem();
+  const SS = getSecureStore();
   const nextState = migrateState(state);
-  await SecureStore.setItemAsync(PROFILE_KEY, JSON.stringify(nextState.profile));
-  await FileSystem.writeAsStringAsync(DATA_FILE, JSON.stringify(nextState, null, 2));
+  await SS.setItemAsync(PROFILE_KEY, JSON.stringify(nextState.profile));
+  await FS.writeAsStringAsync(getDataFilePath(), JSON.stringify(nextState, null, 2));
   return nextState;
 }
 

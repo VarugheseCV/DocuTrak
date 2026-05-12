@@ -1,95 +1,95 @@
 export const darkColors = {
   // Brand
-  primary: "#4F7CFF",     // Electric Indigo
+  primary: "#5B8AFF",     // Brighter Electric Blue
   accent: "#FF8C42",      // Soft Orange
-  
+
   // Status
-  success: "#30D158",
-  warning: "#F5A623",     // Expiring (Yellow/Orange)
-  danger: "#FF453A",      // Expired (Red)
-  
-  // Translucents for glows/backgrounds
-  primaryLight: "rgba(79, 124, 255, 0.12)",
-  warningLight: "rgba(245, 166, 35, 0.12)",
-  dangerLight: "rgba(255, 69, 58, 0.12)",
-  
-  // Layout (Matte Graphite)
-  background: "#0B0D10",          // Dark charcoal background
-  surface: "#16181D",             // Soft tonal surface
-  surfaceElevated: "#1E2129",     // Higher elevation surface
-  backdropTop: "#11151E",
-  backdropBottom: "#07090C",
-  glassFill: "rgba(255, 255, 255, 0.075)",
-  glassFillStrong: "rgba(255, 255, 255, 0.115)",
-  glassBorder: "rgba(255, 255, 255, 0.16)",
-  glassHighlight: "rgba(255, 255, 255, 0.28)",
-  glassShadow: "rgba(0, 0, 0, 0.48)",
-  backdropTint: "rgba(79, 124, 255, 0.05)",
-  successGlass: "rgba(48, 209, 88, 0.13)",
-  warningGlass: "rgba(245, 166, 35, 0.14)",
-  dangerGlass: "rgba(255, 69, 58, 0.14)",
-  
-  // Text
-  text: "#FFFFFF",
-  textMuted: "#A0A5B5",           // Cooler grey
-  textSecondary: "#6E7489",       // Even lighter for hints
-  
-  // Borders (Minimal)
+  success: "#34D399",     // Mint-tinged green
+  warning: "#FBBF24",     // Warmer amber
+  danger: "#FF6B6B",      // Softer, more saturated red
+
+  // Translucent glows
+  primaryLight: "rgba(91, 138, 255, 0.14)",
+  warningLight: "rgba(251, 191, 36, 0.12)",
+  dangerLight: "rgba(255, 107, 107, 0.12)",
+
+  // Layout — Deep matte with a hint of blue undertone
+  background: "#080A0F",
+  surface: "#111318",
+  surfaceElevated: "#181B22",
+  backdropTop: "#0D1018",
+  backdropBottom: "#060810",
+  glassFill: "rgba(255, 255, 255, 0.055)",
+  glassFillStrong: "rgba(255, 255, 255, 0.09)",
+  glassBorder: "rgba(255, 255, 255, 0.12)",
+  glassHighlight: "rgba(255, 255, 255, 0.18)",
+  glassShadow: "rgba(0, 0, 0, 0.60)",
+  backdropTint: "rgba(91, 138, 255, 0.04)",
+  successGlass: "rgba(52, 211, 153, 0.14)",
+  warningGlass: "rgba(251, 191, 36, 0.14)",
+  dangerGlass: "rgba(255, 107, 107, 0.15)",
+
+  // Text — Higher contrast
+  text: "#F1F3F8",
+  textMuted: "#8B92A8",
+  textSecondary: "#5A6178",
+
+  // Borders
   border: "rgba(255, 255, 255, 0.06)",
   borderHighlight: "rgba(255, 255, 255, 0.10)",
-  
+
   // Shadows
   shadowColor: "#000000",
-  
+
   // Ad Banner
-  adBg: "rgba(79, 124, 255, 0.06)",
-  adBorder: "rgba(79, 124, 255, 0.15)",
+  adBg: "rgba(91, 138, 255, 0.05)",
+  adBorder: "rgba(91, 138, 255, 0.12)",
 };
 
 export const lightColors = {
   // Brand
-  primary: "#3D6AE8",     // Deeper indigo for contrast on white
-  accent: "#E87B30",      // Richer orange
+  primary: "#3B6AE5",
+  accent: "#E87B30",
 
   // Status
-  success: "#2DA44E",
-  warning: "#D4850C",
-  danger: "#CF222E",
-  
-  // Translucents for backgrounds
-  primaryLight: "rgba(61, 106, 232, 0.08)",
-  warningLight: "rgba(212, 133, 12, 0.08)",
-  dangerLight: "rgba(207, 34, 46, 0.08)",
-  
-  // Layout (Clean Light — proper contrast hierarchy)
-  background: "#F0F1F3",          // Cool grey canvas
-  surface: "#FFFFFF",             // Pure white cards
-  surfaceElevated: "#FFFFFF",     // Also white (elevation via shadow, not color)
-  backdropTop: "#F7FAFF",
-  backdropBottom: "#E8EDF5",
-  glassFill: "rgba(255, 255, 255, 0.58)",
-  glassFillStrong: "rgba(255, 255, 255, 0.78)",
-  glassBorder: "rgba(255, 255, 255, 0.9)",
-  glassHighlight: "rgba(255, 255, 255, 0.95)",
-  glassShadow: "rgba(61, 74, 104, 0.16)",
-  backdropTint: "rgba(61, 106, 232, 0.055)",
-  successGlass: "rgba(45, 164, 78, 0.12)",
-  warningGlass: "rgba(212, 133, 12, 0.13)",
-  dangerGlass: "rgba(207, 34, 46, 0.12)",
-  
-  // Text
-  text: "#1A1C22",               // Near-black for readability
-  textMuted: "#6B7082",          // Medium grey
-  textSecondary: "#9CA0AE",      // Light hints
-  
-  // Borders — visible enough to define card edges on light bg
-  border: "rgba(0, 0, 0, 0.08)",
-  borderHighlight: "rgba(0, 0, 0, 0.14)",
-  
+  success: "#16A34A",
+  warning: "#D97706",
+  danger: "#DC2626",
+
+  // Translucent glows
+  primaryLight: "rgba(59, 106, 229, 0.10)",
+  warningLight: "rgba(217, 119, 6, 0.10)",
+  dangerLight: "rgba(220, 38, 38, 0.10)",
+
+  // Layout — Soft cool canvas with true white surfaces
+  background: "#EFF1F5",
+  surface: "#FFFFFF",
+  surfaceElevated: "#FFFFFF",
+  backdropTop: "#F5F7FC",
+  backdropBottom: "#E4E8F0",
+  glassFill: "rgba(255, 255, 255, 0.72)",
+  glassFillStrong: "rgba(255, 255, 255, 0.88)",
+  glassBorder: "rgba(0, 0, 0, 0.07)",
+  glassHighlight: "rgba(255, 255, 255, 0.92)",
+  glassShadow: "rgba(45, 55, 85, 0.12)",
+  backdropTint: "rgba(59, 106, 229, 0.04)",
+  successGlass: "rgba(22, 163, 74, 0.10)",
+  warningGlass: "rgba(217, 119, 6, 0.10)",
+  dangerGlass: "rgba(220, 38, 38, 0.10)",
+
+  // Text — True dark for max readability
+  text: "#111827",
+  textMuted: "#64748B",
+  textSecondary: "#94A3B8",
+
+  // Borders — sharper definition
+  border: "rgba(0, 0, 0, 0.06)",
+  borderHighlight: "rgba(0, 0, 0, 0.12)",
+
   // Shadows
-  shadowColor: "rgba(0, 0, 0, 0.12)",
-  
+  shadowColor: "rgba(30, 40, 65, 0.18)",
+
   // Ad Banner
-  adBg: "rgba(61, 106, 232, 0.04)",
-  adBorder: "rgba(61, 106, 232, 0.12)",
+  adBg: "rgba(59, 106, 229, 0.04)",
+  adBorder: "rgba(59, 106, 229, 0.10)",
 };

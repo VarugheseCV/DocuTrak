@@ -57,7 +57,7 @@ export default function DocumentCard({ item, index = 0, onDelete }) {
           accessibilityLabel={`${item.documentType?.name || 'Document'} for ${item.entity?.name || 'Entity'}`}
           accessibilityHint="Opens document details. Swipe left for edit and delete actions."
         >
-          <GlassSurface blur={false} strong style={styles.listItem} contentStyle={styles.itemContent}>
+          <GlassSurface blur={false} strong style={styles.listItem} contentStyle={[styles.itemContent, { backgroundColor: isExpired ? colors.dangerGlass : colors.warningGlass }]}>
             <View style={[styles.statusRail, { backgroundColor: iconColor }]} />
             <View style={[styles.itemIcon, { backgroundColor: iconBg }]}>
               <Ionicons name="document-text" size={22} color={iconColor} />
@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
   statusRail: {
     position: 'absolute',
     left: 0,
-    top: 16,
-    bottom: 16,
-    width: 4,
+    top: 14,
+    bottom: 14,
+    width: 3.5,
     borderTopRightRadius: 3,
     borderBottomRightRadius: 3,
   },

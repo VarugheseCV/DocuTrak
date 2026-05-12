@@ -1,5 +1,6 @@
 import { Text, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import GlassSurface from './GlassSurface';
 import { useTheme } from '../../context/AppContext';
 
@@ -15,8 +16,8 @@ export default function GlassButton({
   accessibilityHint,
   children,
 }) {
-  const { colors } = useTheme();
-  const tone = getTone(colors, variant);
+  const { colors, isDark } = useTheme();
+  const tone = getTone(colors, variant, isDark);
 
   return (
     <TouchableOpacity
@@ -38,6 +39,15 @@ export default function GlassButton({
           contentStyle,
         ]}
       >
+        {tone.gradient && (
+          <LinearGradient
+            pointerEvents="none"
+            colors={tone.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: 18 }]}
+          />
+        )}
         {children || (
           <View style={styles.row}>
             {icon && <Ionicons name={icon} size={20} color={tone.color} />}
@@ -49,9 +59,21 @@ export default function GlassButton({
   );
 }
 
-function getTone(colors, variant) {
-  if (variant === 'primary') return { fill: colors.primaryLight, color: colors.primary };
-  if (variant === 'danger') return { fill: colors.dangerGlass, color: colors.danger };
+function getTone(colors, variant, isDark) {
+  if (variant === 'primary') return {
+    fill: colors.primaryLight,
+    color: colors.primary,
+    gradient: isDark
+      ? ['rgba(91, 138, 255, 0.18)', 'rgba(91, 138, 255, 0.06)']
+      : ['rgba(59, 106, 229, 0.14)', 'rgba(59, 106, 229, 0.04)'],
+  };
+  if (variant === 'danger') return {
+    fill: colors.dangerGlass,
+    color: colors.danger,
+    gradient: isDark
+      ? ['rgba(255, 107, 107, 0.18)', 'rgba(255, 107, 107, 0.06)']
+      : ['rgba(220, 38, 38, 0.12)', 'rgba(220, 38, 38, 0.04)'],
+  };
   if (variant === 'warning') return { fill: colors.warningGlass, color: colors.warning };
   if (variant === 'success') return { fill: colors.successGlass, color: colors.success };
   return { fill: 'transparent', color: colors.text };

@@ -26,6 +26,7 @@ export default function AddEntityScreen() {
   const [isCreatingType, setIsCreatingType] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const isFirstRun = params.fromOnboarding === true;
 
   async function save() {
     const nextErrors = {};
@@ -109,6 +110,15 @@ export default function AddEntityScreen() {
       <ScreenHeader title={editEntityId ? "Edit Entity" : "Add Entity"} onBack={() => navigate(ROUTES.ENTITIES)} />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {isFirstRun && (
+          <GlassSurface blur={false} strong style={styles.welcomeBanner} contentStyle={styles.welcomeContent}>
+            <Ionicons name="sparkles" size={22} color={colors.primary} />
+            <View style={styles.welcomeText}>
+              <Text style={[styles.welcomeTitle, { color: colors.text }]}>Welcome to DocuTrak!</Text>
+              <Text style={[styles.welcomeSub, { color: colors.textMuted }]}>Start by creating your first entity — a person, vehicle, or anything you track documents for.</Text>
+            </View>
+          </GlassSurface>
+        )}
         <GlassTextInput
           label="Entity Name"
           icon="person"
@@ -175,4 +185,9 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 12, fontWeight: '700', marginLeft: 4, marginTop: 4 },
   footer: { position: 'absolute', left: 20, right: 20, bottom: 24 },
   saveButtonContent: { minHeight: 56 },
+  welcomeBanner: { borderRadius: 22, marginBottom: 4 },
+  welcomeContent: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, padding: 16 },
+  welcomeText: { flex: 1 },
+  welcomeTitle: { fontSize: 16, fontWeight: '900', marginBottom: 5 },
+  welcomeSub: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
 });

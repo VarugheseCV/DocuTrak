@@ -57,8 +57,8 @@ export default function DocumentDetailScreen() {
             <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
           </View>
 
-          <Text style={[styles.docTitle, { color: colors.text }]}>{documentType?.name || 'Document'}</Text>
-          <Text style={[styles.entityName, { color: colors.textMuted }]}>{entity?.name || 'Entity'}</Text>
+          <Text style={[styles.docTitle, { color: colors.text }]} numberOfLines={2}>{documentType?.name || 'Document'}</Text>
+          <Text style={[styles.entityName, { color: colors.textMuted }]} numberOfLines={1}>{entity?.name || 'Entity'}</Text>
 
           <View style={styles.infoGrid}>
             <InfoTile icon="calendar-outline" label="Expiry" value={record.expiryDate} colors={colors} />

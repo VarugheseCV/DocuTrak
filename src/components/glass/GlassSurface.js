@@ -7,7 +7,7 @@ export default function GlassSurface({
   children,
   style,
   contentStyle,
-  intensity = 28,
+  intensity = 32,
   strong = false,
   blur = true,
   border = true,
@@ -48,16 +48,20 @@ export default function GlassSurface({
             {
               backgroundColor: strong ? colors.glassFillStrong : colors.glassFill,
               borderColor: border ? colors.glassBorder : 'transparent',
+              borderRadius: radius,
             },
           ]}
         />
         {highlight && (
           <LinearGradient
             pointerEvents="none"
-            colors={[colors.glassHighlight, 'rgba(255, 255, 255, 0)']}
+            colors={[
+              isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)',
+              'rgba(255, 255, 255, 0)',
+            ]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 0.6, y: 0.85 }}
-            style={styles.highlight}
+            end={{ x: 0.5, y: 1 }}
+            style={[styles.highlight, { borderRadius: radius }]}
           />
         )}
         <View style={[styles.content, contentStyle]}>{children}</View>
@@ -68,10 +72,10 @@ export default function GlassSurface({
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.24,
-    shadowRadius: 24,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 20,
+    elevation: 6,
   },
   clip: {
     overflow: 'hidden',
@@ -82,7 +86,7 @@ const styles = StyleSheet.create({
   },
   highlight: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.45,
+    opacity: 0.35,
   },
   content: {
     position: 'relative',

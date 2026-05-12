@@ -95,8 +95,9 @@ export default function SettingsScreen() {
             icon="lock-closed"
             iconColor="#A371F7"
             title="App Lock"
-            subtitle={isBiometricSupported ? "Biometrics / PIN" : "No biometric hardware detected"}
+            subtitle={isBiometricSupported ? "Require biometrics or PIN every time you open DocuTrak." : "No biometric hardware detected on this device."}
             colors={colors}
+            accessibilityLabel={`App Lock, currently ${profile.appLockEnabled ? 'enabled' : 'disabled'}`}
             right={
               <Switch
                 value={!!profile.appLockEnabled}
@@ -104,6 +105,7 @@ export default function SettingsScreen() {
                 disabled={!isBiometricSupported}
                 trackColor={{ false: colors.borderHighlight, true: colors.primary }}
                 thumbColor="#FFF"
+                accessibilityLabel="Toggle App Lock"
               />
             }
           />
@@ -141,6 +143,7 @@ export default function SettingsScreen() {
             title="Language"
             subtitle={profile.language || "English"}
             colors={colors}
+            accessibilityLabel={`Language, ${profile.language || 'English'}`}
             compact
           />
         </Section>
@@ -152,6 +155,7 @@ export default function SettingsScreen() {
             title={busyAction === 'backup' ? "Preparing backup..." : "Backup to Cloud"}
             subtitle={`Last backup: ${state.lastBackupAt || 'Never'}`}
             colors={colors}
+            accessibilityLabel="Backup to Cloud"
             onPress={handleBackup}
             disabled={!!busyAction}
             right={<Ionicons name="chevron-forward" size={18} color={colors.textMuted} />}
@@ -160,8 +164,9 @@ export default function SettingsScreen() {
             icon="cloud-download"
             iconColor={colors.danger}
             title={busyAction === 'restore' ? "Restoring..." : "Restore Backup"}
-            subtitle="Replace local data from a backup file."
+            subtitle="Replace all local data with a previously saved backup file."
             colors={colors}
+            accessibilityLabel="Restore Backup"
             danger
             onPress={() => setRestoreVisible(true)}
             disabled={!!busyAction}
@@ -201,7 +206,7 @@ function Section({ title, children }) {
   );
 }
 
-function SettingsRow({ icon, iconColor, title, subtitle, right, colors, onPress, danger, disabled, compact }) {
+function SettingsRow({ icon, iconColor, title, subtitle, right, colors, onPress, danger, disabled, compact, accessibilityLabel }) {
   const row = (
       <GlassSurface blur={false} strong style={[styles.rowSurface, disabled && styles.disabled]} contentStyle={styles.rowContent}>
         <View style={[styles.iconBox, { backgroundColor: danger ? colors.dangerGlass : colors.primaryLight }]}>
@@ -217,13 +222,13 @@ function SettingsRow({ icon, iconColor, title, subtitle, right, colors, onPress,
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.78} accessibilityRole="button">
+      <TouchableOpacity onPress={onPress} disabled={disabled} activeOpacity={0.78} accessibilityRole="button" accessibilityLabel={accessibilityLabel || title}>
         {row}
       </TouchableOpacity>
     );
   }
 
-  return <View>{row}</View>;
+  return <View accessibilityLabel={accessibilityLabel || title}>{row}</View>;
 }
 
 const styles = StyleSheet.create({
