@@ -47,7 +47,7 @@ export async function scheduleExpiryNotifications(state) {
   for (const record of activeRecords) {
     if (!record.expiryDate) continue;
     const expiryDate = new Date(`${record.expiryDate}T09:00:00`);
-    if (isNaN(expiryDate)) continue;
+    if (Number.isNaN(expiryDate.getTime())) continue;
 
     // Schedule initial alert
     const alertDate = new Date(expiryDate);
